@@ -1,0 +1,91 @@
+/* Dobrov Academy v0.1: brand tokens and visual treatment over the editorial layout. */
+:root {
+  --paper: #f7f5ef;
+  --ink: #172b46;
+  --muted: #596c82;
+  --line: #d4dbe5;
+  --accent: #315bda;
+  --light: #e9edf5;
+  --signal: #7195ff;
+}
+
+body { color: var(--ink); }
+a:focus-visible, button:focus-visible, textarea:focus-visible { outline-color: var(--accent); }
+.demo-banner { background: var(--ink); color: #d9e3ff; }
+.masthead { padding-top: 27px; padding-bottom: 27px; }
+.wordmark { display: inline-block; font: inherit; letter-spacing: normal; line-height: 1; }
+.wordmark span { all: unset; }
+.wordmark .brand-lockup { display: inline-flex; align-items: center; gap: 13px; }
+.brand-symbol { display: block; width: 48px; height: 48px; flex-shrink: 0; }
+.wordmark .brand-type { display: flex; flex-direction: column; gap: 7px; }
+.wordmark .brand-name { font: 700 37px/.85 Arial, Helvetica, sans-serif; letter-spacing: -1.7px; }
+.wordmark .brand-period { color: var(--accent); }
+.wordmark .brand-academy { font: 600 9px/1 Arial, Helvetica, sans-serif; letter-spacing: 4.1px; padding-left: 2px; }
+.wordmark .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+nav a:hover { color: var(--accent); }
+h1 em { color: var(--accent); }
+.intro:after {
+  content: '';
+  position: absolute;
+  width: 42px;
+  height: 3px;
+  background: var(--accent);
+  right: 0;
+  top: 80px;
+}
+.eyebrow { color: var(--muted); }
+.science-art { background: #172b46; }
+.science-art:before {
+  background-image: linear-gradient(#a9beff12 1px, transparent 1px), linear-gradient(90deg, #a9beff12 1px, transparent 1px);
+}
+.orbit { border-color: #a9beff80; }
+.core {
+  background: radial-gradient(circle at 35% 30%, #e6edff, #7195ff 47%, #315bda 75%, #172b46);
+  box-shadow: 0 0 70px #7195ff55;
+}
+.science-art > span { color: #c5d3ed; }
+.method-card, .notice, .candidate { background: var(--light); }
+.method-card li { border-bottom-color: #cdd7e6; }
+.method-card > a, .text-link, .claim-link { color: var(--accent); }
+.tag { color: #24468e; }
+.button { background: var(--accent); }
+.button:hover:not(:disabled) { background: #2449b9; }
+.button.secondary { background: var(--light); color: var(--ink); }
+.button.secondary:hover:not(:disabled) { background: #dbe3f1; }
+.video-frame {
+  position: relative;
+  overflow: hidden;
+  color: var(--paper);
+  background: radial-gradient(ellipse at 90% 10%, #315bda66, transparent 55%), #172b46;
+  border-top: 3px solid var(--accent);
+}
+.video-frame > span:not(.play-mark), .video-frame small { color: #c5d3ed; }
+.play-mark { color: #a9beff; }
+.tabs .active { border-bottom-color: var(--accent); background: var(--light); color: var(--accent); }
+.notice { border-left-color: var(--accent); }
+.scene-number { color: var(--accent); }
+blockquote { border-left-color: var(--accent); }
+.footer-brand { color: var(--ink); font-weight: bold; }
+.footer-brand > span { display: block; margin-top: 4px; color: var(--muted); font-weight: normal; }
+
+@media (max-width: 900px) {
+  .masthead { padding-top: 24px; padding-bottom: 24px; }
+}
+@media (max-width: 620px) {
+  .wordmark .brand-lockup { gap: 9px; }
+  .brand-symbol { width: 37px; height: 37px; }
+  .wordmark .brand-name { font-size: 29px; letter-spacing: -1.3px; }
+  .wordmark .brand-academy { font-size: 7px; letter-spacing: 3.3px; }
+  .wordmark .brand-type { gap: 6px; }
+  .intro:after { display: none; }
+}

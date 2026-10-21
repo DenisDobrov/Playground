@@ -49,6 +49,8 @@ on conflict(idempotency_key) do nothing;
 - Доступ к source files вне Root Directory должен быть включён для `packages/core`.
 - Текущая demo-сборка не требует secret env.
 
+Для первого импорта выбирать **Import single project** у `web`, Project Name `dobrov-academy`. Install/build также закреплены в `apps/web/vercel.json`. Пошаговая инструкция и домены — `VERCEL.md`; первый брендинг — `BRAND.md`.
+
 После Auth добавлять server-only Supabase secrets лишь в соответствующие среды. Worker env хранится у worker-хостера; Gemini key на клиент не передаётся. Условие `PUBLICATION_ENABLED=false` в env — дополнительный будущий выключатель, а не реализованный publisher: в каркасе publisher вообще отсутствует.
 
 ## Worker / Docker

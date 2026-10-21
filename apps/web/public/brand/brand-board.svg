@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1050" viewBox="0 0 1440 1050">
+  <defs>
+    <clipPath id="video-clip"><rect x="790" y="620" width="586" height="330" rx="3"/></clipPath>
+    <g id="mark"><rect width="96" height="96" rx="20" fill="#172B46"/><path d="M28 24v48h14c32 0 32-48 0-48H28Z" fill="none" stroke="#F7F5EF" stroke-width="7" stroke-linejoin="round"/><path d="M47 48h31" stroke="#7195FF" stroke-width="7"/><circle cx="78" cy="48" r="5" fill="#7195FF"/></g>
+  </defs>
+  <rect width="1440" height="1050" fill="#F7F5EF"/>
+  <g font-family="Arial,Helvetica,sans-serif" fill="#172B46">
+    <text x="64" y="52" font-size="12" letter-spacing="3">DOBROV ACADEMY / BRAND DIRECTION 01</text>
+    <text x="1376" y="52" text-anchor="end" font-size="12" fill="#596C82">21.10.2026</text>
+    <path d="M64 76H1376" stroke="#D4DBE5"/>
+    <use href="#mark" x="64" y="125"/>
+    <text x="184" y="182" font-size="65" font-weight="700" letter-spacing="-3">dobrov<tspan fill="#315BDA">.</tspan></text>
+    <text x="188" y="214" font-size="18" font-weight="600" letter-spacing="9">ACADEMY</text>
+    <text x="64" y="282" font-size="23" fill="#596C82">Ciencia con evidencia.</text>
+    <text x="1376" y="154" text-anchor="end" font-size="12" letter-spacing="2" fill="#596C82">PRIMARY DOMAIN / PLANNED</text>
+    <text x="1376" y="198" text-anchor="end" font-size="34">dobrov.org</text>
+    <text x="1376" y="232" text-anchor="end" font-size="15" fill="#596C82">dobrow.org → dobrov.org</text>
+    <path d="M64 326H1376" stroke="#D4DBE5"/>
+    <text x="64" y="367" font-size="11" letter-spacing="2" fill="#596C82">01 / PALETTE</text>
+    <rect x="64" y="390" width="250" height="96" fill="#172B46"/>
+    <rect x="330" y="390" width="250" height="96" fill="#315BDA"/>
+    <rect x="596" y="390" width="250" height="96" fill="#F7F5EF" stroke="#D4DBE5"/>
+    <rect x="862" y="390" width="250" height="96" fill="#E9EDF5"/>
+    <rect x="1128" y="390" width="248" height="96" fill="#596C82"/>
+    <text x="64" y="513" font-size="13">Ink / #172B46</text><text x="330" y="513" font-size="13">Evidence blue / #315BDA</text><text x="596" y="513" font-size="13">Paper / #F7F5EF</text><text x="862" y="513" font-size="13">Mist / #E9EDF5</text><text x="1128" y="513" font-size="13">Slate / #596C82</text>
+    <path d="M64 551H1376" stroke="#D4DBE5"/>
+    <text x="64" y="596" font-size="11" letter-spacing="2" fill="#596C82">02 / EDITORIAL VOICE</text>
+    <text x="64" y="661" font-family="Georgia,serif" font-size="51">Entender lo nuevo.</text>
+    <text x="64" y="721" font-family="Georgia,serif" font-size="45" font-style="italic" fill="#315BDA">Con perspectiva.</text>
+    <text x="64" y="772" font-size="17" fill="#596C82">Fuentes. Contexto. Perspectiva.</text>
+    <text x="64" y="811" font-size="14" fill="#596C82">AI · Física · Espacio / Español neutro</text>
+    <text x="64" y="850" font-size="14" fill="#596C82">Calm. Clear. Curious. Evidence before hype.</text>
+    <text x="790" y="596" font-size="11" letter-spacing="2" fill="#596C82">03 / VIDEO COVER SYSTEM — DEMO</text>
+    <rect x="790" y="620" width="586" height="330" rx="3" fill="#172B46"/>
+    <g clip-path="url(#video-clip)">
+    <circle cx="1292" cy="755" r="130" fill="none" stroke="#7195FF" stroke-opacity=".4"/>
+    <circle cx="1292" cy="755" r="92" fill="none" stroke="#7195FF" stroke-opacity=".6"/>
+    <path d="M1180 755h196" stroke="#7195FF" stroke-width="2"/>
+    <circle cx="1292" cy="755" r="17" fill="#7195FF"/>
+    </g>
+    <text x="823" y="665" font-size="14" font-weight="700" fill="#F7F5EF">dobrov. <tspan font-size="10" letter-spacing="2">ACADEMY</tspan></text>
+    <text x="823" y="737" font-family="Georgia,serif" font-size="39" fill="#F7F5EF">¿Qué sabemos</text>
+    <text x="823" y="785" font-family="Georgia,serif" font-size="39" fill="#F7F5EF">realmente?</text>
+    <rect x="823" y="845" width="205" height="32" fill="#315BDA"/>
+    <text x="837" y="866" font-size="11" fill="#FFFFFF" letter-spacing="1">MÉTODO + EVIDENCIA</text>
+    <text x="823" y="923" font-size="10" fill="#C5D3ED">ILLUSTRATIVE TEMPLATE / NOT A PUBLISHED STORY</text>
+    <path d="M64 985H1376" stroke="#D4DBE5"/>
+    <text x="64" y="1021" font-size="11" fill="#596C82">SYSTEM FONTS / ARIAL + GEORGIA</text>
+    <text x="1376" y="1021" text-anchor="end" font-size="11" fill="#596C82">VECTOR IDENTITY / V0.1</text>
+  </g>
+</svg>
