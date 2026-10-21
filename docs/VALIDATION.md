@@ -32,3 +32,7 @@ Production build сначала упёрся в EPERM при создании Ne
 - Отдельная мобильная browser QA не выполнялась; responsive CSS предусмотрен, но это не заменяет такую проверку.
 
 Demo — архитектурный каркас и интерфейс на фикстуре. Его успешный запуск не является проверкой научной корректности, качественного ES narration или готовностью публичного MVP.
+
+## Dobrov Academy — branding v0.1
+
+21 октября 2026: добавлены логотип/знак SVG, favicon, PNG social card через Next ImageResponse, брендовая палитра, style board и Vercel web configuration. Typecheck, 21 тест и offline demo пройдены. Production build включает `/icon.svg` и `/opengraph-image`. Главная страница просмотрена в браузере: новый logo/название/цвета отображаются, доступное имя ссылки ведёт на Dobrov Academy. Brand board отрендерен в PNG и визуально проверен. Домены и Vercel-проект в этой задаче не создавались и не подключались; live deployment не проверялся.

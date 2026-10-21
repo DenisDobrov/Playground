@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 112" fill="none">
+  <title>Dobrov Academy</title>
+  <rect x="8" y="8" width="96" height="96" rx="20" fill="#172B46"/>
+  <path d="M36 32v48h14c32 0 32-48 0-48H36Z" stroke="#F7F5EF" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M55 56h31" stroke="#7195FF" stroke-width="7"/>
+  <circle cx="86" cy="56" r="5" fill="#7195FF"/>
+  <text x="128" y="65" fill="#172B46" font-family="Arial,Helvetica,sans-serif" font-size="58" font-weight="700" letter-spacing="-2">dobrov<tspan fill="#315BDA">.</tspan></text>
+  <text x="132" y="91" fill="#172B46" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="600" letter-spacing="8">ACADEMY</text>
+</svg>

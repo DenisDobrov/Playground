@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none">
+  <title>Dobrov Academy — D / evidence axis</title>
+  <rect width="96" height="96" rx="20" fill="#172B46"/>
+  <path d="M28 24v48h14c32 0 32-48 0-48H28Z" stroke="#F7F5EF" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M47 48h31" stroke="#7195FF" stroke-width="7"/>
+  <circle cx="78" cy="48" r="5" fill="#7195FF"/>
+</svg>
