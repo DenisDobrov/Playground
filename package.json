@@ -1,0 +1,31 @@
+{
+  "name": "science-portal",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace=@science/web",
+    "build": "npm run build --workspace=@science/web",
+    "start": "npm run start --workspace=@science/web",
+    "typecheck": "tsc --noEmit && npm run typecheck --workspace=@science/web",
+    "test": "vitest run",
+    "demo": "tsx --env-file-if-exists=.env apps/worker/src/demo.ts",
+    "worker:once": "tsx --env-file-if-exists=.env apps/worker/src/once.ts",
+    "video:render": "tsx --env-file-if-exists=.env apps/worker/src/render.ts"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vitest": "5.0.5"
+  }
+}

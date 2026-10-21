@@ -1,0 +1,1 @@
+{ "name": "@science/pipeline", "private": true, "type": "module", "exports": "./src/index.ts", "dependencies": { "@science/core": "*", "@science/llm": "*" } }

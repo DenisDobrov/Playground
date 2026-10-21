@@ -1,0 +1,10 @@
+begin;
+create extension if not exists pgtap with schema extensions;
+select plan(5);
+select ok((select relrowsecurity from pg_class where oid='public.claims'::regclass),'Claims have RLS');
+select ok(not has_table_privilege('anon','public.claims','select'),'Anonymous cannot read private claims');
+select ok(not has_table_privilege('authenticated','public.articles','insert'),'Signed-in reader cannot publish');
+select ok(not has_function_privilege('anon','public.claim_job()','execute'),'Anonymous cannot lease jobs');
+select ok(has_function_privilege('service_role','public.claim_job()','execute'),'Worker can lease jobs');
+select * from finish();
+rollback;

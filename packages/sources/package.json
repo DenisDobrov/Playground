@@ -1,0 +1,1 @@
+{ "name": "@science/sources", "private": true, "type": "module", "exports": "./src/index.ts" }

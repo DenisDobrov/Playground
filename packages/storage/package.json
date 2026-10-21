@@ -1,0 +1,9 @@
+{
+  "name": "@science/storage",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@supabase/supabase-js": "2.118.0"
+  }
+}

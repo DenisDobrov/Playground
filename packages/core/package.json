@@ -1,0 +1,12 @@
+{
+  "name": "@science/core",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./demo": "./src/demo.ts"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
+  }
+}

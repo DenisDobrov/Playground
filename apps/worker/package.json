@@ -1,0 +1,6 @@
+{
+  "name": "@science/worker",
+  "private": true,
+  "type": "module",
+  "dependencies": { "@science/core": "*", "@science/pipeline": "*", "@science/storage": "*", "@science/video": "*", "@science/sources": "*" }
+}
