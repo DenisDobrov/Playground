@@ -3,5 +3,10 @@ node_modules
 .git
 .env
 .env.*
+.enм
+*.pem
+supabase/.temp
+supabase/.branches
+supabase/backups
 artifacts
 coverage

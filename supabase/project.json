@@ -1,0 +1,8 @@
+{
+  "name": "To-do-Db-project",
+  "projectRef": "upwrplsgunjanragbggb",
+  "url": "https://upwrplsgunjanragbggb.supabase.co",
+  "schema": "academy",
+  "bucket": "dobrov-academy-assets",
+  "strategy": "reuse-existing-project-preserve-legacy"
+}

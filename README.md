@@ -59,10 +59,11 @@ tests             meaningful release/LLM/input/timeline tests
 - [Проверки](docs/VALIDATION.md): фактические результаты этой сессии.
 - [Брендинг](docs/BRAND.md): название, палитра, логотип и правила использования.
 - [Деплой в Vercel](docs/VERCEL.md): точные поля первого импорта и порядок подключения доменов.
+- [Supabase / PR2](docs/SUPABASE.md): использование существующего To-do-Db-project, namespace academy и локальные команды.
 
 ## Supabase и Vercel
 
-Supabase CLI и Docker устанавливаются отдельно. Из корня проекта: `supabase start`, затем `supabase db reset` и `supabase test db`. Для удалённого проекта сначала проверить target, затем применять migration через обычный CLI workflow. Никакие удалённые миграции в этой сессии не применялись.
+Docker запускается отдельно; Supabase CLI закреплён в зависимостях проекта. Локально: `npm run db:start`, `npm run db:test`, `npm run db:test:integration`. Порты 563xx не конфликтуют с уже работающими проектами. Для облака используем существующий **To-do-Db-project** с отдельной схемой `academy`: сначала `npm run db:remote:plan`, затем проверенное применение по инструкции [SUPABASE.md](docs/SUPABASE.md). Старую облачную базу не сбрасывать и её историю миграций не заменять.
 
 Vercel: добавить репозиторий, Root Directory `apps/web`, framework Next.js, Install Command `cd ../.. && npm ci`, Build Command `npm run build`. Разрешить доступ к файлам вне Root Directory для workspace packages. Внешний worker запускается отдельно, не через Vercel Functions. Подробности — `docs/IMPLEMENTATION.md`.
 

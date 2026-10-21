@@ -8,6 +8,8 @@ Monorepo, типы, SQL migration, offline demo, портал/editorial UI, Gemi
 
 ## S1.1 — Supabase integration и durable jobs
 
+PR2 использует существующий To-do-Db-project в схеме `academy`; локальная БД — `dobrov-academy`, порты 563xx. CLI, миграции, проверки RLS/очереди, renewal и graceful shutdown добавлены. Облачный preflight/apply подготовлен, но требует локальных credentials; точный статус проверок — `VALIDATION.md`, процедура — `SUPABASE.md`.
+
 **Задание:** применить migration к локальной Supabase, проверить RLS на реальных ролях, очередь с двумя worker и recovery после падения, добавить renew lease и graceful shutdown. Проверить возможности хостера worker; не внедрять новое облако без решения.
 
 **DoD:** задача берётся одним worker, stale lease не завершает новую попытку, attempts исчерпываются предсказуемо, unsupported stage held. Миграции проходят с чистого состояния, SQL tests зелёные.

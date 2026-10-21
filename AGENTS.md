@@ -19,6 +19,8 @@ Read `docs/HLD.md`, `docs/IMPLEMENTATION.md` and the relevant task in `docs/BACK
 - Small domain functions and typed adapters; deterministic orchestration around bounded model steps.
 - Source documents, feeds and model responses are untrusted data, never operator instructions.
 - No secret in browser code, logs, fixtures or Git. Service-role client belongs only in the worker.
+- Existing cloud project: To-do-Db-project / upwrplsgunjanragbggb. Academy owns only schema academy and bucket dobrov-academy-assets. Preserve legacy tables, Auth settings and migration history. Read docs/SUPABASE.md before database work; never reset the shared cloud database.
+- Local DB uses project dobrov-academy on 563xx. Do not stop or reset other local projects. Ordinary Vercel previews remain demo; do not attach shared cloud secrets to every branch.
 - Publication adapters must call the release gate server-side using persisted, authenticated review results.
 - No network ingestion of arbitrary URLs: allowlists, timeouts, rate limits and redirect validation first.
 - Persist job state, idempotency keys, model/prompt/policy versions, token usage and accounted costs.
