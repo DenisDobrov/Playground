@@ -95,6 +95,7 @@ returns academy.budget_operations language plpgsql security definer set search_p
 declare r academy.budget_operations; b academy.budget_periods;
   total numeric; category_total numeric; story_total numeric; video_total numeric;
 begin
+  if current_setting('transaction_isolation')<>'read committed' then raise exception 'BUDGET_ISOLATION_UNSUPPORTED' using errcode='22023'; end if;
   if p_key is null or length(p_key) not between 1 and 200 or p_month is null
     or p_category is null or p_category not in ('news_analysis','content','voice','video')
     or p_estimate is null or p_estimate not between 0 and 1000000000000
@@ -136,6 +137,7 @@ create function academy.budget_start(p_id uuid) returns uuid language plpgsql se
 declare r academy.budget_operations; token uuid; b academy.budget_periods;
   total numeric; category_total numeric; story_total numeric; video_total numeric;
 begin
+  if current_setting('transaction_isolation')<>'read committed' then raise exception 'BUDGET_ISOLATION_UNSUPPORTED' using errcode='22023'; end if;
   select * into r from academy.budget_operations where id=p_id;
   select * into b from academy.budget_periods where month=r.month for update;
   select * into r from academy.budget_operations where id=p_id for update;

@@ -12,6 +12,9 @@ try {
   await clients[0].query("select academy.budget_configure($1,100,'{\"news_analysis\":100,\"content\":0,\"voice\":0,\"video\":0}',100,0)",[month]);
   configured=true;
   const reserve=(client:pg.Client,key:string)=>client.query("select (academy.budget_reserve($1,$2,'news_analysis',80,null,null,'fixture','1','fixture/1',repeat('a',64))).id as id",[key,month]);
+  await clients[0].query('begin isolation level repeatable read');
+  try { await assert.rejects(reserve(clients[0],`${run}:stale-snapshot`),/BUDGET_ISOLATION_UNSUPPORTED/,'Unsupported stale snapshots fail before reserving money'); }
+  finally { await clients[0].query('rollback'); }
   const results=await Promise.allSettled(clients.map((c,i)=>reserve(c,`${run}:${i}`)));
   const accepted=results.filter((r):r is PromiseFulfilledResult<pg.QueryResult>=>r.status==='fulfilled');
   const denied=results.filter((r):r is PromiseRejectedResult=>r.status==='rejected');
