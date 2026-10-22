@@ -1,16 +1,20 @@
 import { createClient } from '@supabase/supabase-js';
+import type { BudgetStore, ProductionQuote, Usage } from '@science/pipeline';
 
 export interface ProductionJob {
   id: string; story_id: string | null; stage: string; payload: Record<string, unknown>;
   attempts: number; lease_token: string;
 }
-export function createWorkerStore() {
+function workerClient() {
   const url = process.env.SUPABASE_URL;
   const secret = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !secret) throw new Error('Worker requires SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
   const schema = process.env.SUPABASE_DB_SCHEMA ?? 'academy';
   if (schema !== 'academy') throw new Error('Worker is restricted to the academy schema');
-  const db = createClient(url, secret, { db: { schema }, auth: { persistSession: false, autoRefreshToken: false } });
+  return createClient(url, secret, { db: { schema }, auth: { persistSession: false, autoRefreshToken: false } });
+}
+export function createWorkerStore() {
+  const db = workerClient();
   return {
     async enqueue(stage: string, idempotencyKey: string, payload: Record<string, unknown>, storyId: string | null = null): Promise<string> {
       const { data, error } = await db.rpc('enqueue_job', { p_stage: stage, p_key: idempotencyKey, p_payload: payload, p_story: storyId });
@@ -33,6 +37,31 @@ export function createWorkerStore() {
     async fail(job: ProductionJob, errorCode: string, hold = false) {
       const { data, error } = await db.rpc('fail_job', { p_id: job.id, p_lease: job.lease_token, p_error: errorCode, p_hold: hold });
       if (error || data !== true) throw new Error('Job failure update failed or lease lost');
+    }
+  };
+}
+export function createBudgetStore(): BudgetStore {
+  const db = workerClient();
+  async function rpc(name: string, args: Record<string, unknown>) {
+    const { data, error } = await db.rpc(name, args);
+    if (error) {
+      const code = /^BUDGET_[A-Z_]+$/.test(error.message) ? error.message : 'BUDGET_STORAGE_UNAVAILABLE';
+      throw new Error(code);
+    }
+    return data;
+  }
+  return {
+    async reserve(q: ProductionQuote) {
+      const data = await rpc('budget_reserve', { p_key:q.key,p_month:q.month,p_category:q.category,p_estimate:q.estimateMicros,
+        p_story:q.storyId,p_video:q.videoKey,p_tool:q.tool,p_tool_version:q.toolVersion,p_price_version:q.priceVersion,p_input_hash:q.inputHash });
+      if (!data?.id) throw new Error('BUDGET_EMPTY_RESULT');
+      return { id: data.id, state: data.state };
+    },
+    async start(id) { const token = await rpc('budget_start', {p_id:id}); if (!token) throw new Error('BUDGET_EMPTY_TOKEN'); return token as string; },
+    async release(id) { await rpc('budget_release', {p_id:id}); },
+    async uncertain(id,token) { await rpc('budget_uncertain', {p_id:id,p_token:token}); },
+    async settle(id,token,actualMicros:number,usage:Usage,reference:string) {
+      await rpc('budget_settle', {p_id:id,p_token:token,p_actual:actualMicros,p_usage:usage,p_reference:reference});
     }
   };
 }

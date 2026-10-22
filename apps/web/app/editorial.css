@@ -12,4 +12,8 @@
 .editorial-navigation { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.5rem 0; }
 .editorial-navigation a { padding: .7rem 1rem; border: 1px solid #a5b7b0; border-radius: .3rem; }
 .editorial-navigation a[aria-current="page"] { background: #143a34; color: #fff; }
+.budget-table { overflow-x: auto; margin: 1.5rem 0; }
+.budget-table table { width: 100%; border-collapse: collapse; text-align: left; }
+.budget-table th, .budget-table td { padding: .8rem; border-bottom: 1px solid #c8d6cf; }
+.budget-table caption { text-align: left; font-weight: bold; margin-bottom: 1rem; }
 @media (min-width: 850px) { .intake-form { grid-template-columns: 1fr 1fr; } .decision-form { grid-template-columns: 12rem 1fr auto; align-items: end; } }

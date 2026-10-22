@@ -1,0 +1,8 @@
+{
+  "analysisInputTokens": 4000,
+  "analysisOutputTokens": 1000,
+  "contentInputTokens": 12000,
+  "contentOutputTokens": 6000,
+  "narrationEs": "Ejemplo de planificación: una noticia científica necesita evidencia y contexto.",
+  "renderCeilingMs": 600000
+}
