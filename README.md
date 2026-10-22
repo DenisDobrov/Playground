@@ -72,3 +72,7 @@ Docker запускается отдельно; Supabase CLI закреплён 
 Vercel: добавить репозиторий, Root Directory `apps/web`, framework Next.js, Install Command `cd ../.. && npm ci`, Build Command `npm run build`. Разрешить доступ к файлам вне Root Directory для workspace packages. Внешний worker запускается отдельно, не через Vercel Functions. Подробности — `docs/IMPLEMENTATION.md`.
 
 CI рассчитан на репозиторий с корнем в этой папке. Если сохранять проект подпапкой другого репозитория, перенести workflow в корневую `.github/workflows` и задать `working-directory`/`cache-dependency-path`.
+
+### Бюджет производства (PR6)
+
+Локальная редакция: `/editorial/budget`. Ledger учитывает news analysis, текст/сценарии, голос и видео. Команды `budget:local:init`, `budget:local:review`, `production:local:plan`; контракт, лимиты и сверка — [docs/PRODUCTION-BUDGET.md](docs/PRODUCTION-BUDGET.md). Платные сервисы этим не включаются.

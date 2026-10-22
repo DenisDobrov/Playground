@@ -2,7 +2,10 @@
 
 ## Обновление 22 октября 2026
 
-Последний срез: локальный metadata intake arXiv AI/physics и NASA discovery; provider leases/cooldown, conditional requests, alias dedupe, отдельные даты/flags. Есть EN public demo и LocalizedArticle contract с отдельным review. Migrations 005–007 локальные. Cloud 004 и editor membership уже проверены после явных подтверждений; Vercel Auth activation ещё предстоит. `INGESTION.md` содержит команды, человеческие проверки и актуальные границы; более ранние описания ниже — история срезов.
+PR5 слит. Текущий production-budget срез добавляет ledger 008, read-only экран бюджета, local metadata brief, planning и recovery. Приоритет — news/content/voice/video tooling; paid research/verifier benchmark отложены. Команды и ограничения — `PRODUCTION-BUDGET.md`.
+
+
+Последний срез: локальный metadata intake arXiv AI/physics и NASA discovery; provider leases/cooldown, conditional requests, alias dedupe, отдельные даты/flags. Есть EN public demo и LocalizedArticle contract с отдельным review. Migrations 005–008 локальные. Cloud 004 и editor membership уже проверены после явных подтверждений; Vercel Auth activation ещё предстоит. `INGESTION.md` содержит команды, человеческие проверки и актуальные границы; более ранние описания ниже — история срезов.
 
 Следующий реализованный срез: opt-in live editorial Auth + manual DOI/arXiv inbox и persisted decisions. Роли editor/reviewer проверяются server-side и в SQL RPC. Миграция 004 проверена локально; облако в этом срезе не изменено. По умолчанию Vercel previews остаются demo. Запуск и ограничения — `EDITORIAL.md`. Таблица Sprint 0 ниже отражает исходный каркас; описание отсутствия Auth относится к нему, а не к новому live mode.
 
@@ -84,3 +87,5 @@ OAuth YouTube и Supabase Google login — разные решения: поль
 ## Исправления
 
 Не обновлять текст опубликованной revision на месте. Новая Article/Script version → новая review/approval → Publication указывает точные revisions. Correction ссылается на старую и новую статью. Для YouTube нужна политика pinned comment/description либо перевыпуск при существенной ошибке; её должен реализовать адаптер.
+
+Обновление после merge PR5: PR6 добавляет production budget ledger и локальные инструменты news brief/планирования. Приоритет пользователя — анализ новостей, контент, голос и видео; paid research/verifier benchmark отложены. Контракт и проверки — PRODUCTION-BUDGET.md, порядок — SPRINTS.md.

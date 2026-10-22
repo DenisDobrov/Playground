@@ -1,0 +1,6 @@
+{
+  "monthlyUsd": "200",
+  "categoriesUsd": { "news_analysis": "30", "content": "50", "voice": "50", "video": "70" },
+  "storyUsd": "10",
+  "videoUsd": "25"
+}

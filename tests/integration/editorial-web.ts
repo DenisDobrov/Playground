@@ -19,6 +19,8 @@ const db = new pg.Client({ connectionString: 'postgresql://postgres:postgres@127
 const emails = ['editor@academy.example.test', 'reviewer@academy.example.test', 'outsider@academy.example.test'];
 const userIds: string[] = [];
 const paginationIds: string[] = [];
+const budgetMonth='2095-01-01';
+let budgetFixture=false;
 const canonical = `doi:10.9999/academy-e2e-${randomUUID()}`;
 const unescapeHtml = (s: string) => s.replaceAll('&amp;', '&').replaceAll('&quot;', '"').replaceAll('&#x27;', "'");
 class Browser {
@@ -108,6 +110,7 @@ try {
   assert.equal((await anon.request('/en/stories/missing')).status,404,'Missing English article does not silently serve Spanish');
   assert.equal((await anon.request('/editorial')).headers.get('location'), '/login');
   assert.equal((await anon.request('/editorial/stories')).headers.get('location'), '/login');
+  assert.equal((await anon.request('/editorial/budget')).headers.get('location'), '/login');
   anon.cookies.set('da-academy-auth', 'base64-forged-session');
   assert.equal((await anon.request('/editorial')).headers.get('location'), '/login');
   const editor = new Browser();
@@ -162,6 +165,18 @@ try {
   selection.set('requestId', randomUUID()); selection.set('decision', 'hold');
   assert.match((await editor.post(selection)).headers.get('location') || '', /notice=conflict/);
   const reviewer = await sessionWithoutEmail(emails[1]);
+  assert.equal((await db.query('select count(*)::int n from academy.budget_periods where month=$1',[budgetMonth])).rows[0].n,0,'Refuse to replace an existing budget');
+  await db.query("select academy.budget_configure($1,200000000,'{\"news_analysis\":30000000,\"content\":50000000,\"voice\":50000000,\"video\":70000000}',10000000,25000000)",[budgetMonth]);
+  budgetFixture=true;
+  const operation=(await db.query("select (academy.budget_reserve($1,$2,'voice',1500000,$3,'video:http-test','fixture','1','fixture/1',repeat('a',64))).id as id",['http-budget:'+randomUUID(),budgetMonth,selection.get('storyId')])).rows[0].id;
+  const token=(await db.query('select academy.budget_start($1) as token',[operation])).rows[0].token;
+  await db.query('select academy.budget_uncertain($1,$2)',[operation,token]);
+  const budgetPage=await reviewer.request('/editorial/budget?month=2095-01');
+  assert.equal(budgetPage.status,200);
+  assert.match(budgetPage.headers.get('cache-control')||'',/no-store/);
+  const budgetHtml=await budgetPage.text();
+  for(const label of ['Análisis de noticias','Texto y guion','Voz','Vídeo','uncertain','Pendientes de conciliación:']) assert.ok(budgetHtml.includes(label),'Budget exposes categories and unresolved operation');
+  assert.ok(!budgetHtml.includes('name="reason"'),'Budget has no financial write forms');
   const readOnly = await (await reviewer.request('/editorial/stories')).text();
   assert.match(readOnly, /Primary source selected in HTTP test/); assert.ok(!readOnly.includes('name="reason"'));
   assert.ok((await reviewer.post(selection)).status >= 400, 'Reviewer cannot invoke hidden action directly');
@@ -181,16 +196,22 @@ try {
   assert.equal((await editor.request('/editorial/stories?q=' + marker + '&page=999')).status,200,'Out-of-range page remains a usable empty result');
   const outsider = await sessionWithoutEmail(emails[2]);
   assert.match((await outsider.request('/editorial/stories')).headers.get('location') || '', /notice=access/);
+  assert.match((await outsider.request('/editorial/budget?month=2095-01')).headers.get('location') || '', /notice=access/);
   assert.match((await outsider.request('/editorial')).headers.get('location') || '', /notice=access/);
   await db.query('delete from academy.editor_members where user_id=$1', [userIds[1]]);
   assert.match((await reviewer.request('/editorial')).headers.get('location') || '', /notice=access/, 'Membership revocation takes effect immediately');
   const logout = formFrom(afterReload, 'logout');
   assert.equal((await editor.post(logout)).headers.get('location'), '/login');
   assert.equal((await editor.request('/editorial')).headers.get('location'), '/login');
-  console.log('PASS: Auth/PKCE, refresh/logout, private reads, new queue, catalog search/filters/pagination, decision history, CSRF, retries, stale tab, reviewer and revoked membership');
+  console.log('PASS: Auth/PKCE, refresh/logout, private reads, inbox/catalog, read-only budget dashboard, decision history, CSRF, retries, stale tab, reviewer and revoked membership');
 } finally {
   if (web && web.exitCode === null) web.kill();
   if (userIds.length) {
+    if(budgetFixture) {
+      await db.query('delete from academy.budget_events where operation_id in (select id from academy.budget_operations where month=$1)',[budgetMonth]);
+      await db.query('delete from academy.budget_operations where month=$1',[budgetMonth]);
+      await db.query('delete from academy.budget_periods where month=$1',[budgetMonth]);
+    }
     if (paginationIds.length) await db.query('delete from academy.stories where id=any($1::uuid[])', [paginationIds]);
     // Remove only data associated with this unique synthetic source and the test users created above.
     const stories = (await db.query("select id from academy.stories where slug='source-'||md5($1)", [canonical])).rows.map(r => r.id);

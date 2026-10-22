@@ -37,7 +37,13 @@
     "db:test:integration": "tsx tests/integration/database.ts",
     "db:local:env": "node scripts/local-env.mjs",
     "db:remote:plan": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/remote-database.mjs plan",
-    "db:remote:apply": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/remote-database.mjs apply"
+    "db:remote:apply": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/remote-database.mjs apply",
+    "budget:local:init": "tsx --env-file=.env.local-worker apps/worker/src/production-budget.ts init",
+    "budget:local:review": "tsx --env-file=.env.local-worker apps/worker/src/production-budget.ts review",
+    "budget:local:rehearse": "tsx --env-file=.env.local-worker apps/worker/src/production-budget.ts rehearse",
+    "production:local:plan": "tsx --env-file=.env.local-worker apps/worker/src/production-budget.ts plan",
+    "test:budget:integration": "tsx tests/integration/budget.ts",
+    "budget:local:recover": "tsx --env-file=.env.local-worker apps/worker/src/production-budget.ts recover"
   },
   "devDependencies": {
     "@types/node": "26.6.5",
