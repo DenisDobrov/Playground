@@ -5,7 +5,8 @@ Read `docs/HLD.md`, `docs/IMPLEMENTATION.md` and the relevant task in `docs/BACK
 ## Product invariants
 - Publication language: neutral Spanish. Canonical research and claims: English.
 - Weekly target: 10–20 stories, AI 70% / physics including space 30%; quotas never lower the quality floor.
-- Video is in the MVP: 8–12 minutes, 2–3 per week, narration without an avatar or presenter.
+- Video pilot is in the MVP: one 6–8 minute video per week, narration without an avatar or presenter. Scale target after pilot: 2–3 videos/week at 8–12 minutes.
+- Article and video have separate release gates and version-bound approvals. Video uses an exact published article/dossier snapshot; video failures never block article publication.
 - Vercel hosts web. Supabase stores state/auth/assets. Google is used only for Gemini and YouTube.
 - Monthly budget: $100–300; planning envelope $200, configurable. Never trigger paid calls from demo mode.
 - Every scientific assertion maps to a typed claim and located evidence. Do not treat model confidence as evidence.

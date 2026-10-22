@@ -1,4 +1,5 @@
 import { z } from 'zod';
+export * from './releases';
 
 export const claimTypes = ['measured_result', 'author_interpretation', 'vendor_claim', 'editorial_explanation', 'speculation'] as const;
 export const stageNames = ['discovery', 'ranking', 'research', 'verification', 'writing', 'language_check', 'visual_plan', 'voice', 'render', 'editorial_review', 'publication'] as const;
@@ -79,7 +80,7 @@ export interface ReleaseBundle {
   languageCheckPassed: boolean; independentVerificationPassed: boolean;
 }
 
-/** Fail closed. This is also required server-side before any publication adapter. */
+/** @deprecated Legacy combined demo gate. Publishers must use separate article/video gates. */
 export function publicationIssues(bundle: ReleaseBundle, packs = domainPacks): string[] {
   const issues: string[] = [];
   const { story, dossier, article, script, approval } = bundle;
