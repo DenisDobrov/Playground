@@ -17,7 +17,7 @@ npm run sources:ingest:local -- nasa-news
 npm run gold:export:local
 ```
 
-Нужны локальные migrations 005/006 и `.env.local-worker`, созданный `npm run db:local:env`. Между arXiv прогонами выдерживать минимум 3 секунды; если lease/cooldown занят, команда выдаёт `feed.deferred`, а не запускает ещё одно соединение. `sources:ingest` читает cloud env и используется лишь после отдельного подключения reviewed migrations; в этом срезе cloud ingestion не запускался.
+Нужны локальные migrations 005–007 и `.env.local-worker`, созданный `npm run db:local:env`. Между arXiv прогонами выдерживать минимум 3 секунды; если lease/cooldown занят, команда выдаёт `feed.deferred`, а не запускает ещё одно соединение. `sources:ingest` читает cloud env и используется лишь после отдельного подключения reviewed migrations; в этом срезе cloud ingestion не запускался.
 
 Состояние provider lease и cooldown хранится в Academy DB, arXiv категории разделяют один lock. Запускать live poller только в одной среде: локальная и облачная БД не образуют общий rate limiter. При HTTP 429/503 сохраняется Retry-After; при ошибке пауза 60 секунд. Нет мгновенного retry loop и автоматического расписания. Следующий разрешённый запуск повторяет idempotent intake. ETag/Last-Modified обновляются только после успешного разбора и сохранения всех entries; частичный batch можно повторить, повтор не создаёт новый сюжет. HTTP 304 обновляет checked_at, сохраняя предыдущие content dates.
 
@@ -35,7 +35,7 @@ npm run gold:export:local
 
 `gold:export:local` создаёт игнорируемый `artifacts/gold-set/candidates.json`: до 21 AI и 9 physics preprints, без выдуманных меток. Это пул для независимого отбора, **не** готовый claim-verification gold set. Не заполнять пустые human labels решениями модели.
 
-Денис в live local inbox открывает 20–30 кандидатов и сохраняет select/reject/hold с конкретной причиной; hold можно использовать для контекстного сюжета. Не смотреть модельный ranking до независимой разметки. Экспорт повторяется после решений и включает savedHumanDecisions. Claim gold set с точными quote/locator и adversarial ошибками готовится отдельно на этапе research; метаданных заголовка для этого недостаточно. Retained/context flags не отменяют качество/права/review.
+Денис в live local inbox открывает 20–30 кандидатов и сохраняет select/reject/hold с конкретной причиной; hold можно использовать для контекстного сюжета. Не смотреть модельный ranking до независимой разметки. Экспорт повторяется после решений: selection-gold/2 включает последнюю humanLabel/humanReason, decision ID, policy version и savedHumanDecisions. Hold/revise не считаются завершёнными binary labels. Перед model eval фиксировать snapshot. Claim gold set с точными quote/locator и adversarial ошибками готовится отдельно на этапе research; метаданных заголовка для этого недостаточно. Retained/context flags не отменяют качество/права/review.
 
 ## EN/ES
 
@@ -45,8 +45,12 @@ npm run gold:export:local
 
 ## Облачный статус и ваша ручная проверка
 
-По явному подтверждению пользователя migration 004 применена и membership editor назначена существующей учётке. Проверено чтением cloud journal/membership. Auth user, SMTP, templates, redirect URL, legacy objects не менялись, писем не отправлялось. Migrations 005/006 пока **только локально**, требуют review перед cloud install.
+По явному подтверждению пользователя migration 004 применена и membership editor назначена существующей учётке. Проверено чтением cloud journal/membership. Auth user, SMTP, templates, redirect URL, legacy objects не менялись, писем не отправлялось. Migrations 005–007 пока **только локально**, требуют review перед cloud install.
 
 Для облачного веб-входа остаётся настройка выбранной Vercel среды по `EDITORIAL.md`: пять EDITORIAL_* variables и точный callback в Supabase redirect allowlist, сохранив старые URL. Service-role/DB URL вебу не нужны. Production browser/email delivery smoke выполняет Денис после активации; локальный Mailpit не проверяет доставку в Gmail. Обычные Preview остаются demo.
 
 В локальном браузере проверить ES/EN переключение и формулировки, войти, открыть реальные candidates, сохранить 2–3 решения и обновить страницу. Это дополняет автоматические проверки UX и содержательным отбором, не повторяет вручную всю тестовую матрицу.
+
+## Очередь и редакционная память
+
+Сохранённые решения уходят из новых; все сюжеты доступны в `/editorial/stories` с поиском и фильтрами. Migration 007 и цикл Motivo → редакционная память → эталон → повторное рассмотрение описаны в `EDITORIAL-FEEDBACK.md`. Автоматический research/reanalysis ещё не подключён.

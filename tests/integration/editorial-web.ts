@@ -18,6 +18,7 @@ const admin = createClient(api, status.SERVICE_ROLE_KEY, { auth: { persistSessio
 const db = new pg.Client({ connectionString: 'postgresql://postgres:postgres@127.0.0.1:56322/postgres' });
 const emails = ['editor@academy.example.test', 'reviewer@academy.example.test', 'outsider@academy.example.test'];
 const userIds: string[] = [];
+const paginationIds: string[] = [];
 const canonical = `doi:10.9999/academy-e2e-${randomUUID()}`;
 const unescapeHtml = (s: string) => s.replaceAll('&amp;', '&').replaceAll('&quot;', '"').replaceAll('&#x27;', "'");
 class Browser {
@@ -106,6 +107,7 @@ try {
   assert.match(await (await anon.request('/')).text(),/<html lang="es"/);
   assert.equal((await anon.request('/en/stories/missing')).status,404,'Missing English article does not silently serve Spanish');
   assert.equal((await anon.request('/editorial')).headers.get('location'), '/login');
+  assert.equal((await anon.request('/editorial/stories')).headers.get('location'), '/login');
   anon.cookies.set('da-academy-auth', 'base64-forged-session');
   assert.equal((await anon.request('/editorial')).headers.get('location'), '/login');
   const editor = new Browser();
@@ -147,24 +149,49 @@ try {
   assert.match((await editor.post(selection)).headers.get('location') || '', /notice=saved/);
   assert.match((await editor.post(selection)).headers.get('location') || '', /notice=saved/, 'Retry is idempotent');
   const afterReload = await (await editor.request('/editorial')).text();
-  assert.match(afterReload, /Primary source selected in HTTP test/);
+  assert.ok(!afterReload.includes('Synthetic HTTP integration fixture'), 'Saved candidate leaves the new inbox');
+  const catalogPath = '/editorial/stories?q=' + encodeURIComponent(canonical) + '&status=researching&decision=select&domain=ai';
+  const catalog = await (await editor.request(catalogPath)).text();
+  assert.match(catalog, /Primary source selected in HTTP test/, 'Catalog retains history and searches source identity');
+  const noMatch = await (await editor.request(catalogPath.replace('domain=ai', 'domain=physics'))).text();
+  assert.ok(!noMatch.includes('Synthetic HTTP integration fixture'), 'Domain filter runs in the database');
+  const wildcard = await (await editor.request('/editorial/stories?q=%25')).text();
+  assert.ok(!wildcard.includes('Synthetic HTTP integration fixture'), 'Percent search is literal');
+  const reasonSearch = await (await editor.request('/editorial/stories?q=Primary+source+selected+in+HTTP+test')).text();
+  assert.match(reasonSearch, /Synthetic HTTP integration fixture/, 'Decision reasons are searchable');
   selection.set('requestId', randomUUID()); selection.set('decision', 'hold');
   assert.match((await editor.post(selection)).headers.get('location') || '', /notice=conflict/);
   const reviewer = await sessionWithoutEmail(emails[1]);
-  const readOnly = await (await reviewer.request('/editorial')).text();
+  const readOnly = await (await reviewer.request('/editorial/stories')).text();
   assert.match(readOnly, /Primary source selected in HTTP test/); assert.ok(!readOnly.includes('name="reason"'));
   assert.ok((await reviewer.post(selection)).status >= 400, 'Reviewer cannot invoke hidden action directly');
+  const reconsider = formFrom(catalog, 'storyId');
+  reconsider.set('decision', 'revise'); reconsider.set('reason', 'New evidence requested in HTTP test');
+  assert.match((await editor.post(reconsider, origin, '/editorial/stories')).headers.get('location') || '', /status=researching.*notice=saved/, 'Catalog save preserves safe filters');
+  const revised = await (await editor.request('/editorial/stories?q=' + encodeURIComponent(canonical) + '&status=review&decision=revise')).text();
+  assert.match(revised, /New evidence requested in HTTP test/);
+  assert.match(revised, /Primary source selected in HTTP test/, 'Reanalysis preserves previous reasons');
+  assert.ok(!(await (await editor.request('/editorial')).text()).includes('Synthetic HTTP integration fixture'), 'Reconsideration does not reset new queue');
+  const marker = `pagination-${randomUUID()}`;
+  paginationIds.push(...(await db.query("insert into academy.stories(slug,title_en,status) select $1||'-'||n,$1||' item '||n,'candidate' from generate_series(1,21) n returning id", [marker])).rows.map(row=>row.id));
+  const pageOne = await (await editor.request('/editorial/stories?q=' + marker)).text();
+  const pageTwo = await (await editor.request('/editorial/stories?q=' + marker + '&page=2')).text();
+  assert.equal((pageOne.match(/class="candidate-card"/g)||[]).length,20,'First page shows 20 filtered stories');
+  assert.equal((pageTwo.match(/class="candidate-card"/g)||[]).length,1,'Second page includes the remaining story');
+  assert.equal((await editor.request('/editorial/stories?q=' + marker + '&page=999')).status,200,'Out-of-range page remains a usable empty result');
   const outsider = await sessionWithoutEmail(emails[2]);
+  assert.match((await outsider.request('/editorial/stories')).headers.get('location') || '', /notice=access/);
   assert.match((await outsider.request('/editorial')).headers.get('location') || '', /notice=access/);
   await db.query('delete from academy.editor_members where user_id=$1', [userIds[1]]);
   assert.match((await reviewer.request('/editorial')).headers.get('location') || '', /notice=access/, 'Membership revocation takes effect immediately');
   const logout = formFrom(afterReload, 'logout');
   assert.equal((await editor.post(logout)).headers.get('location'), '/login');
   assert.equal((await editor.request('/editorial')).headers.get('location'), '/login');
-  console.log('PASS: magic link/PKCE, refresh, logout, forged cookie, private reads, durable decisions, dedupe, CSRF, retry, stale tab, reviewer and revoked membership');
+  console.log('PASS: Auth/PKCE, refresh/logout, private reads, new queue, catalog search/filters/pagination, decision history, CSRF, retries, stale tab, reviewer and revoked membership');
 } finally {
   if (web && web.exitCode === null) web.kill();
   if (userIds.length) {
+    if (paginationIds.length) await db.query('delete from academy.stories where id=any($1::uuid[])', [paginationIds]);
     // Remove only data associated with this unique synthetic source and the test users created above.
     const stories = (await db.query("select id from academy.stories where slug='source-'||md5($1)", [canonical])).rows.map(r => r.id);
     for (const table of ['production_jobs', 'editorial_decisions', 'story_sources', 'story_domains']) await db.query(`delete from academy.${table} where story_id=any($1::uuid[])`, [stories]);

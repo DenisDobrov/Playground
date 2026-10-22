@@ -121,3 +121,4 @@ export function publicationIssues(bundle: ReleaseBundle, packs = domainPacks): s
   if (!approval || approval.storyId !== story.id || !approval.actorId.trim() || !Number.isFinite(Date.parse(approval.approvedAt)) || approval.articleVersion !== article.version || approval.scriptVersion !== script.version) issues.push('Human approval for current versions required');
   return [...new Set(issues)];
 }
+export { selectionFeedback } from './selection-gold';

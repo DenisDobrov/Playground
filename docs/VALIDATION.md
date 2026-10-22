@@ -107,3 +107,9 @@ HTTP runner стартует собственный Next на свободном
 - Typecheck, production build, offline demo — PASS. Demo synthetic, 0 paid calls, publication blocked.
 
 Новые migrations 005/006 **не применены в cloud**. Vercel live Auth environment и browser delivery smoke не выполнены; public portal ES/EN пока synthetic. Нет paid research, full-text ingestion, scheduler, ledger, verifier evaluation или законченного видео. Registry имеет строгий scope, DOI/arXiv linking основан на reported metadata и требует review при конфликте.
+
+## Очередь и редакционная память — 22 октября 2026
+
+PR5 дополнен замечаниями пользователя: новые только без решения; приватный каталог с поиском по title/identity/мотивам, фильтрами и pagination; повторное решение сохраняет историю. Migration 007 применена только в локальную Academy DB без reset.
+
+Typecheck, production build, offline demo — PASS. 61 unit test и 67 SQL assertions — PASS. HTTP integration — PASS: исчезновение из новых, поиск по source/reason, сочетание фильтров, literal percent, страницы 20+1, пустая страница, повторное рассмотрение, сохранение фильтров, Auth/PKCE/refresh/logout, CSRF, stale-tab, роли и отзыв membership. Gold export v2 — PASS: 30 кандидатов, 4 с человеческими решениями, 1 resolved select/reject, без paid calls. Изменения cloud не выполнялись; 005–007 там pending. Тесты используют собственные синтетические данные и очищают их. Цикл и ограничения — EDITORIAL-FEEDBACK.md.
