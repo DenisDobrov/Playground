@@ -11,6 +11,11 @@
     "node": ">=22.14.0"
   },
   "scripts": {
+    "web:local:env": "node scripts/local-web-env.mjs",
+    "web:local:editor": "node scripts/local-editor.mjs",
+    "web:local": "node scripts/local-web.mjs dev",
+    "web:local:start": "node scripts/local-web.mjs start",
+    "test:editorial:web": "tsx tests/integration/editorial-web.ts",
     "dev": "npm run dev --workspace=@science/web",
     "build": "npm run build --workspace=@science/web",
     "start": "npm run start --workspace=@science/web",

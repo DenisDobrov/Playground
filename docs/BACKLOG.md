@@ -24,6 +24,8 @@ PR2 использует существующий To-do-Db-project в схеме
 
 ## S2.1 — Auth и редакция
 
+Локальный vertical slice реализован: opt-in Auth, manual inbox, persisted selection и read-only reviewer; end-to-end tests в CI. `EDITORIAL.md`. Остались cloud activation/реальный editor login smoke после review 004; публичная лента пока fixture, published DTO — в срезе article release.
+
 **Задание:** email magic link через Supabase Auth, server-side session verification, editor membership, защищённые routes и команды. Заменить fixture repository в редакции реальной БД; публичная лента видит только published DTO.
 
 **DoD:** anon и обычный authenticated не читают редакцию; editor получает inbox, делает select/reject с причиной; решение сохраняется после перезагрузки; действия CSRF-safe и не доверяют client role/approval flags.

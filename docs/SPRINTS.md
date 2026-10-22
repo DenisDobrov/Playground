@@ -7,7 +7,7 @@
 **Результат:** редактор видит настоящие источники, принимает сохранённое решение; статья архитектурно не ждёт видео.
 
 1. Принять HLD v0.3, разделить release contracts, определить scene-job identity. **Начато в текущей ветке:** чистые проверки и тесты; публикация и renderer ещё не подключены.
-2. Supabase email magic link, server-side session verification и membership. Обычный authenticated без membership не получает inbox. Editor пишет через авторизованную команду; reviewer только читает. Сначала локальная база, затем отдельно проверенная миграция в `academy`; legacy Auth settings не менять.
+2. Supabase email magic link, server-side session verification и membership. **Реализовано и проверено локально в следующем срезе:** Auth, manual intake, persisted decisions, retry/stale-tab conflict; инструкция `EDITORIAL.md`. Облачное включение после review миграции 004 остаётся отдельным шагом. Обычный authenticated без membership не получает inbox. Editor пишет через авторизованную команду; reviewer только читает. Legacy Auth settings не менять.
 3. Persisted manual DOI/arXiv inbox → allowlisted arXiv ingestion + один согласованный институтский feed. Dedupe и normalize job, conditional requests/лимиты, SSRF и redirects проверяются до fetch.
 4. Original/revision/press-release/fetch dates, configurable rehash и stale feed flags. Недатированная работа отправляется на review. Visual potential не входит в article ranking.
 5. Собрать 20–30 кандидатов, Денис независимо размечает select/reject/context; сохранить причины и версии. Для verifier подготовить не менее 30 атомарных примеров: корректные, unsupported, vendor claims, потеря caveats/causation, неверные цитаты/locators, abstract-only; без выдачи synthetic cases за реальные результаты.
