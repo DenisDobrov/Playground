@@ -87,3 +87,9 @@ Demo — архитектурный каркас и интерфейс на фи
 HTTP runner стартует собственный Next на свободном localhost:3000, использует только API 56321 / DB 56322 / Mailpit 56324. Синтетические Auth users и данные теста удалены; код не отправляет внешних писем и не читает cloud URL из env. Создана отдельная локальная membership пользователя для ручной проверки; адрес хранится только в игнорируемом `.env.local-web`, не в fixture/репозитории.
 
 Ограничения: реальный cloud login и SMTP/redirect compatibility не проверялись; migration 004 не установлена в облаке. Automated source fetch, freshness metadata, ranking/gold-set workflow, paid models, ledger и publishing отсутствуют. Ручной intake не выдаётся за научную проверку.
+
+### Исправление dev launcher
+
+По результату запуска пользователя выявлен пропуск: HTTP integration проверял production `next start`, но не исходную команду dev с `node --env-file`. Next 16.4.2 переносил этот флаг из execArgv в дочерний NODE_OPTIONS, что Node 24.14.0 запрещает. Команды web:local и web:local:start переведены на launcher с `process.loadEnvFile()` без CLI-флага; env-файлы пользователя и системные переменные не изменялись.
+
+Фактически проверены обе npm-команды: dev Ready, `/editorial` → 307 `/login`, `/login` → 200 с формой; production start Ready и форма входа → 200. 50 unit tests и diff check — PASS. Полный Auth flow ранее прошёл локально и в Database CI; после этого launcher-only исправления повторная отправка писем не выполнялась.
