@@ -68,6 +68,8 @@ flowchart LR
 
 **Vercel:** Next.js App Router, публичные страницы, позднее защищённая редакция и короткие API-команды. **Supabase:** Postgres, Auth, приватный Storage, очередь/состояние, граф в таблицах. **Worker:** TypeScript и Docker, локально на старте или у отдельного выбранного хостера. **Google:** Gemini API для исследований и текста, YouTube Data API для канала. Провайдер озвучки и независимый verifier выбираются после короткой оценки качества/стоимости.
 
+Уточнение PR2: облачный Supabase — существующий **To-do-Db-project** (`upwrplsgunjanragbggb`), выбран пользователем для сохранения бесплатного плана. Новые сущности живут в `academy`, Storage — в `dobrov-academy-assets`; старые данные/настройки не сбрасываются. Auth и ресурсы общие на уровне проекта. Локальная разработка использует отдельный Docker stack на 563xx, обычные Vercel Preview до отдельного решения остаются demo. Детали установки — `SUPABASE.md`.
+
 У Vercel Functions ограничено время выполнения; длинный render вынесен в worker. Это не требует выбора конкретного дополнительного облака на Sprint 0. Worker не живёт в HTTP-запросе страницы. Для первого MVP достаточно Postgres lease queue; переход на durable engine — при усложнении ретраев/ожиданий. [Vercel Functions](https://vercel.com/docs/functions/limitations).
 
 ## 5. Данные и lineage

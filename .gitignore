@@ -4,9 +4,15 @@ out/
 coverage/
 .env
 .env.*
+# Protect an accidentally Cyrillic-named local env file as well.
+.enм
 !.env.example
 *.tsbuildinfo
 next-env.d.ts
 .vercel/
 artifacts/
 .DS_Store
+supabase/.temp/
+supabase/.branches/
+supabase/backups/
+*.pem

@@ -10,8 +10,8 @@
 | Источники | Чистая нормализация DOI/arXiv | Нет HTTP ingestion |
 | AI | Gemini structured JSON adapter | Не вызывается demo/worker автоматически |
 | Pipeline | Research prompt + offline rehearsal | Остальные AI-роли ещё не реализованы |
-| Supabase | Migration + seed + RLS access test | Требует применения и интеграционного теста |
-| Worker | Atomic claim, complete/fail, normalization handler | Для долгого render нужен heartbeat |
+| Supabase | Схема academy, migration + seed, локальные/облачные команды | Облачный доступ требует credentials пользователя |
+| Worker | Atomic enqueue/claim, complete/fail, lease renewal, normalization handler | Реальные AI/video стадии ещё не подключены |
 | Video | SRT и тихий FFmpeg preview | Нет TTS/asset montage/full editorial video |
 | YouTube | Контракт publisher, env placeholders | Нет OAuth или upload |
 | Бюджет | Локальная проверка арифметики | Нет атомарного ledger; live calls не подключать до него |
@@ -20,12 +20,12 @@
 
 `npm ci` → `npm run demo` → `npm run dev`. Fixture сохраняется в `artifacts/demo`. Портал намеренно не читает реальную БД до добавления Auth/authorization.
 
-Для Supabase нужны Docker и CLI: `supabase start`, `supabase db reset`, `supabase test db`. Это локальная база. Затем заполнить `.env` значениями локального проекта, не production. Worker: `npm run worker:once`.
+Для Supabase нужен Docker; CLI установлен как зависимость проекта: `npm run db:start`, `npm run db:test`, `npm run db:test:integration`. Project ID `dobrov-academy`, порты 563xx. Затем `npm run db:local:env` создаёт отдельный `.env.local-worker`; локальный worker: `npm run worker:local`. Облачный `.env` этим не перезаписывается. Существующий To-do-Db-project подключается по инструкции `SUPABASE.md` без reset или замены его migration history.
 
 Пример задания после применения migration (SQL editor, привилегированный контекст):
 
 ```sql
-insert into public.production_jobs(stage,idempotency_key,payload)
+insert into academy.production_jobs(stage,idempotency_key,payload)
 values('normalize_source','normalize:arxiv:2401.12345', '{"identifier":"https://arxiv.org/abs/2401.12345v2"}')
 on conflict(idempotency_key) do nothing;
 ```
@@ -34,9 +34,9 @@ on conflict(idempotency_key) do nothing;
 
 ## Права
 
-Создать пользователя через Supabase Auth. Membership в `editor_members` назначать только административно. Сейчас authenticated может читать private tables лишь при membership; прямые browser INSERT/UPDATE запрещены. Позднее серверная команда проверяет сессию/роль и пишет через доверенный repository. Service-role key нельзя переносить в client component.
+Создать пользователя через Supabase Auth. Membership в `academy.editor_members` назначать только административно. В облаке Auth общий со старым приложением; его настройки не менять без учёта прежнего использования. Сейчас authenticated может читать private tables лишь при membership; прямые browser INSERT/UPDATE запрещены. Позднее серверная команда проверяет сессию/роль и пишет через доверенный repository. Service-role key нельзя переносить в client component.
 
-`articles` и `corrections` доступны анонимно только с `published_at <= now()`. Draft evidence и traces приватны. Публичный evidence DTO нужно добавить отдельно: только проверенные цитаты и атрибуция, без приватных промптов и содержимого документов.
+`academy.articles` и `academy.corrections` доступны анонимно только с `published_at <= now()`. Draft evidence и traces приватны. Публичный evidence DTO нужно добавить отдельно: только проверенные цитаты и атрибуция, без приватных промптов и содержимого документов.
 
 ## Vercel
 
@@ -55,7 +55,7 @@ on conflict(idempotency_key) do nothing;
 
 ## Worker / Docker
 
-Из корня: `docker build -f apps/worker/Dockerfile -t science-worker .`. Запуск one-shot: `docker run --rm --env-file .env science-worker`. Его периодически вызывает планировщик выбранного хостера. До production не держать незавершённый render под 10-минутным lease без renewal.
+Из корня: `docker build -f apps/worker/Dockerfile -t science-worker .`. Запуск one-shot: `docker run --rm --env-file .env science-worker`. Его периодически вызывает планировщик выбранного хостера. Worker продлевает действующий lease каждые 30 секунд и обрабатывает SIGINT/SIGTERM; будущие долгие стадии также обязаны учитывать AbortSignal и прекращать работу при потере lease.
 
 Docker image содержит FFmpeg; для preview использовать writable volume:
 

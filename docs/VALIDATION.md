@@ -36,3 +36,24 @@ Demo — архитектурный каркас и интерфейс на фи
 ## Dobrov Academy — branding v0.1
 
 21 октября 2026: добавлены логотип/знак SVG, favicon, PNG social card через Next ImageResponse, брендовая палитра, style board и Vercel web configuration. Typecheck, 21 тест и offline demo пройдены. Production build включает `/icon.svg` и `/opengraph-image`. Главная страница просмотрена в браузере: новый logo/название/цвета отображаются, доступное имя ссылки ведёт на Dobrov Academy. Brand board отрендерен в PNG и визуально проверен. Домены и Vercel-проект в этой задаче не создавались и не подключались; live deployment не проверялся.
+
+## PR2 — существующий Supabase project + локальная база
+
+21 октября 2026. Пользователь выбрал To-do-Db-project, project ref `upwrplsgunjanragbggb`; новые сущности перенесены в `academy`, bucket — `dobrov-academy-assets`. CLI 2.121.0 и PostgreSQL 17.11.0.004.
+
+| Проверка | Результат |
+|---|---|
+| Docker / локальный Supabase | Запущен отдельный `dobrov-academy`, API 56321, DB 56322, Studio 56323 |
+| Миграции | Все три применились к чистой локальной базе; seed выполнен |
+| SQL / pgTAP | 4 файла, 28 проверок: RLS, membership, draft visibility, immutable revisions, права RPC, базовая очередь и отдельные legacy/academy tables — PASS |
+| Конкурентные сессии PostgreSQL | Dedupe enqueue, единственный claim, reclaim после истечения lease, запрет stale finish, renewal, backoff и исчерпание attempts — PASS |
+| Local worker smoke | enqueue `2401.12345` → `job.succeeded` через REST API academy — PASS |
+| TypeScript | PASS |
+| Unit tests | 3 файла, 31 проверка — PASS |
+| Offline demo | PASS, 0 paid calls, publication blocked |
+| Production web build | PASS |
+| Cloud plan | Остановлен до подключения: SUPABASE_DB_URL ещё не заполнен |
+
+Первоначальный диапазон 553xx оказался в списке зарезервированных портов Windows; перенесён на 563xx. Другие Docker projects сохранили свои контейнеры и порты. Local keys сохранены в игнорируемом `.env.local-worker`; облачные env-файлы не перезаписывались.
+
+К выбранному облачному To-do-Db-project соединение не выполнялось: credentials отсутствуют. Поэтому схема/данные/настройки старого облачного приложения не менялись; фактическая облачная инвентаризация, применение и Data API exposure остаются следующим шагом по `SUPABASE.md`. Namespace isolation не является отдельной Auth/service-role/ресурсной границей.

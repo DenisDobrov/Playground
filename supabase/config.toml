@@ -1,14 +1,15 @@
-project_id = "science-portal"
+project_id = "dobrov-academy"
 
 [api]
 enabled = true
-port = 54321
-schemas = ["public", "graphql_public"]
+port = 56321
+schemas = ["public", "graphql_public", "academy"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
 [db]
-port = 54322
+port = 56322
+shadow_port = 56320
 major_version = 17
 
 [db.seed]
@@ -17,7 +18,19 @@ sql_paths = ["./seed.sql"]
 
 [studio]
 enabled = true
-port = 54323
+port = 56323
+
+[local_smtp]
+enabled = true
+port = 56324
+
+[analytics]
+enabled = false
+port = 56327
+
+[edge_runtime]
+enabled = false
+inspector_port = 8183
 
 [auth]
 enabled = true
