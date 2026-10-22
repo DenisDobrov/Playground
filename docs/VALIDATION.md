@@ -56,4 +56,16 @@ Demo — архитектурный каркас и интерфейс на фи
 
 Первоначальный диапазон 553xx оказался в списке зарезервированных портов Windows; перенесён на 563xx. Другие Docker projects сохранили свои контейнеры и порты. Local keys сохранены в игнорируемом `.env.local-worker`; облачные env-файлы не перезаписывались.
 
-К выбранному облачному To-do-Db-project соединение не выполнялось: credentials отсутствуют. Поэтому схема/данные/настройки старого облачного приложения не менялись; фактическая облачная инвентаризация, применение и Data API exposure остаются следующим шагом по `SUPABASE.md`. Namespace isolation не является отдельной Auth/service-role/ресурсной границей.
+На момент указанного выше первого прогона credentials отсутствовали. Последующее завершение PR2: облачная инвентаризация и установка трёх миграций выполнены с подтверждением пользователя; private bucket создан, `academy` добавлена в Exposed schemas пользователем, Data API проверен. Cloud enqueue → normalize worker → succeeded проверен на задании `2a1e6b34-62b2-4ab1-bd89-7559290bc54f`. 59 legacy table names сохранены. Соединение PostgreSQL использует проверяемый Supabase CA, TLS verification не отключается. Namespace isolation не является отдельной Auth/service-role/ресурсной границей.
+
+## Следующий срез — HLD v0.3 и независимые release contracts
+
+22 октября 2026, ветка `codex/editorial-foundation`, поверх PR2.
+
+- `npm test`: 4 файла, 45 проверок — PASS. Включая независимость article/video gates, stale dossier/script/render approvals, права voice/visual assets, отсутствующий evidence и сценовые input hashes/reorder.
+- `npm run typecheck`: PASS.
+- `npm run demo`: PASS, synthetic fixture, 0 paid calls, publication blocked.
+- `npm run build`: PASS, Next production build.
+- `git diff --check`: PASS.
+
+Новых SQL миграций или изменений cloud/Vercel/Auth в этом срезе нет; DB tests не повторялись, поскольку SQL/storage/worker не менялись. Remotion/TTS/verifier eval и фактический incremental render не запускались. Scene planner рассчитывает идентичность задач, не подтверждает существование/целостность cached output. Новые gates проверяют контракт: до публикации нужен server service, который сам загружает доверенные persisted review/approval records. Demo пока сохраняет deprecated combined gate для обратной совместимости и остаётся заблокированным к выпуску.
