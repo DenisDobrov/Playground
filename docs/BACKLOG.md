@@ -1,6 +1,6 @@
 # Backlog агентной реализации
 
-**Актуальный порядок ближайших трёх спринтов — `SPRINTS.md` (22.10.2026).** Ниже сохранён каталог задач с прежними S-идентификаторами, а не календарный порядок. Видео пилота теперь 1×6–8 минут; 8–12 минут остаются целью масштабирования. Read-only retention перенесён в MVP, автоматическая оптимизация — после него. Cloud foundation PR2 уже установлен и проверен; Auth и ingestion ещё не реализованы.
+**Актуальный порядок ближайших трёх спринтов — `SPRINTS.md` (22.10.2026).** Ниже сохранён каталог задач с прежними S-идентификаторами, а не календарный порядок. Видео пилота 1×6–8 минут; 8–12 — цель масштабирования. Auth/manual inbox реализованы, cloud 004/membership установлены. Локальный source/EN срез и оставшиеся ограничения описаны в `INGESTION.md`. Read-only retention входит в MVP, автоматическая оптимизация — после него.
 
 Каждую задачу выполнять отдельной сессией с чтением AGENTS.md и HLD. Сначала контракт и критерий готовности, затем реализация и проверка. Ниже задания для будущих агентов разработки; в этой сессии дополнительные агенты не запускались.
 
@@ -17,6 +17,8 @@ PR2 использует существующий To-do-Db-project в схеме
 **DoD:** задача берётся одним worker, stale lease не завершает новую попытку, attempts исчерпываются предсказуемо, unsupported stage held. Миграции проходят с чистого состояния, SQL tests зелёные.
 
 ## S1.2 — Source ingestion
+
+Реализован локальный срез: allowlisted arXiv metadata + согласованный NASA discovery RSS, dates/flags, aliases/dedupe, provider leases и conditional HTTP; см. `INGESTION.md`. Реальный intake дал 21 AI + 9 physics + 1 NASA candidate; 30 препринтов выгружены для human selection labels. Не считать это full-text research, автоматическим научным ranking или готовым verifier gold set. Cloud install 005/006 и scheduler не включены.
 
 **Задание:** реализовать arXiv по AI/physics и один институтский feed. Category allowlist, лимиты из актуальной документации источника, conditional requests, retries, canonical identity, source license metadata и dedupe. Press releases используются для discovery, primary source хранится отдельно.
 

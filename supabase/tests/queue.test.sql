@@ -1,6 +1,9 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 select plan(12);
+-- Isolate the fixture inside this rolled-back transaction even after real local intake.
+update academy.production_jobs set available_at=now()+interval '1 day' where status='queued';
+update academy.production_jobs set lease_expires_at=now()+interval '1 day' where status='running';
 select ok(not has_function_privilege('authenticated','academy.renew_job(uuid,uuid)','execute'),'Readers cannot renew leases');
 select ok(not has_function_privilege('anon','academy.enqueue_job(text,text,jsonb,uuid)','execute'),'Anonymous cannot enqueue');
 create temporary table fixture_job as select academy.enqueue_job('normalize_source','test:sql:queue','{"identifier":"2401.12345"}') as id;

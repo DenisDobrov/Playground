@@ -96,6 +96,15 @@ try {
     web!.stderr!.resume(); // Do not echo sessions, callback URLs or Auth errors to CI logs.
   });
   const anon = new Browser();
+  for (const path of ['/en','/en/method','/en/stories/reading-ai-results']) {
+    const publicPage = await anon.request(path);
+    assert.equal(publicPage.status,200,'English page loads');
+    const englishHtml=await publicPage.text();
+    assert.match(englishHtml,/<html lang="en"/,'Correct server-rendered document language');
+    assert.ok(!englishHtml.includes('PORTAL EN VISTA PREVIA'),'English shell does not inherit Spanish banner');
+  }
+  assert.match(await (await anon.request('/')).text(),/<html lang="es"/);
+  assert.equal((await anon.request('/en/stories/missing')).status,404,'Missing English article does not silently serve Spanish');
   assert.equal((await anon.request('/editorial')).headers.get('location'), '/login');
   anon.cookies.set('da-academy-auth', 'base64-forged-session');
   assert.equal((await anon.request('/editorial')).headers.get('location'), '/login');

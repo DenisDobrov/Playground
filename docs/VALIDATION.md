@@ -93,3 +93,17 @@ HTTP runner стартует собственный Next на свободном
 По результату запуска пользователя выявлен пропуск: HTTP integration проверял production `next start`, но не исходную команду dev с `node --env-file`. Next 16.4.2 переносил этот флаг из execArgv в дочерний NODE_OPTIONS, что Node 24.14.0 запрещает. Команды web:local и web:local:start переведены на launcher с `process.loadEnvFile()` без CLI-флага; env-файлы пользователя и системные переменные не изменялись.
 
 Фактически проверены обе npm-команды: dev Ready, `/editorial` → 307 `/login`, `/login` → 200 с формой; production start Ready и форма входа → 200. 50 unit tests и diff check — PASS. Полный Auth flow ранее прошёл локально и в Database CI; после этого launcher-only исправления повторная отправка писем не выполнялась.
+
+## Источники и English preview — 22 октября 2026
+
+Ветка `codex/source-ingestion` от master после PR4. Cloud 004 применена после явного согласия, verified journal PASS. Существующей пользовательской учётке назначена academy editor membership после отдельного согласия; повторное чтение PASS. Auth/SMTP/templates/redirect URL/legacy objects не менялись, писем не отправлялось.
+
+- Реальные metadata intake локально: arxiv-ai 21, arxiv-physics 9, nasa-news 1; 0 paid calls. Original/revision/release dates сохранены. NASA не считается primary study. DNS публичного NASA WordPress 192.0.66.108 корректно разрешён, private/reserved адреса по-прежнему блокируются.
+- Export selection pool: 30 candidates, human labels pending, `artifacts/gold-set/candidates.json` ignored. Это не claim-verification gold set.
+- Unit tests: 6 файлов, 59 — PASS; XML/DTD, categories, dates, stale feeds, private IP, retries и независимость EN review/approval.
+- SQL pgTAP: 6 файлов, 58 — PASS; feed/role grants, lease/provider binding, aliases/manual DOI reuse, content freshness при 304, language version uniqueness и immutable language.
+- Concurrent queue integration — PASS на непустой локальной базе; лишний claim второй сессии откатывается. Старые SQL fixtures изолированы в rollback transaction, чтобы реальные локальные candidates не ломали проверки.
+- HTTP Auth + EN/ES routes — PASS; реальный local magic link/refresh/logout, no-store, CSRF, сохранение и роли, EN server HTML lang, ES сохранён, unknown EN article 404.
+- Typecheck, production build, offline demo — PASS. Demo synthetic, 0 paid calls, publication blocked.
+
+Новые migrations 005/006 **не применены в cloud**. Vercel live Auth environment и browser delivery smoke не выполнены; public portal ES/EN пока synthetic. Нет paid research, full-text ingestion, scheduler, ledger, verifier evaluation или законченного видео. Registry имеет строгий scope, DOI/arXiv linking основан на reported metadata и требует review при конфликте.

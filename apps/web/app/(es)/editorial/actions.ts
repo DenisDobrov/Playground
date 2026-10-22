@@ -2,7 +2,7 @@
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { canonicalSourceId } from '@science/sources';
-import { requireMember } from '../../lib/editorial-auth';
+import { requireMember } from '../../../lib/editorial-auth';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export async function createCandidate(form: FormData) {
   const { client } = await requireMember(true);

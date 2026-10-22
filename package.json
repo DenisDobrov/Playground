@@ -11,6 +11,9 @@
     "node": ">=22.14.0"
   },
   "scripts": {
+    "gold:export:local": "tsx --env-file=.env.local-worker apps/worker/src/export-gold.ts",
+    "sources:ingest:local": "tsx --env-file=.env.local-worker apps/worker/src/ingest.ts",
+    "sources:ingest": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local apps/worker/src/ingest.ts",
     "web:local:env": "node scripts/local-web-env.mjs",
     "web:local:editor": "node scripts/local-editor.mjs",
     "web:local": "node scripts/local-web.mjs dev",

@@ -15,9 +15,14 @@ try {
   const enqueue = async (db: pg.Client) => (await db.query("select academy.enqueue_job('normalize_source',$1,'{}') as id", [key])).rows[0].id;
   const ids = await Promise.all([enqueue(a), enqueue(b)]);
   assert.equal(ids[0], ids[1], 'Concurrent duplicate enqueue must return one identity');
-  const leases = (await Promise.all(clients.map(c => c.query('select * from academy.claim_job()')))).flatMap(r => r.rows);
+  await a.query("update academy.production_jobs set available_at='-infinity'::timestamptz where id=$1", [ids[0]]);
+  await Promise.all(clients.map(c => c.query('begin')));
+  const batches = await Promise.all(clients.map(c => c.query('select * from academy.claim_job()')));
+  const leases = batches.flatMap(r => r.rows);
   const own = leases.filter(job => job.id === ids[0]);
   assert.equal(own.length, 1, 'Only one worker can claim the same job');
+  // A second session may see another local source job. Roll that claim back immediately.
+  await Promise.all(clients.map((c,i) => c.query(batches[i].rows[0]?.id === ids[0] ? 'commit' : 'rollback')));
   const oldLease = own[0];
   await a.query("update academy.production_jobs set lease_expires_at=now()-interval '1 second' where id=$1", [oldLease.id]);
   const fresh = (await b.query('select * from academy.claim_job()')).rows.find(job => job.id === oldLease.id);
@@ -28,13 +33,14 @@ try {
   await b.query("select academy.fail_job($1,$2,'RETRY_TEST')", [fresh.id, fresh.lease_token]);
   const retry = (await a.query('select status,available_at>now() as delayed from academy.production_jobs where id=$1', [fresh.id])).rows[0];
   assert.equal(retry.status, 'queued'); assert.equal(retry.delayed, true);
-  await a.query("update academy.production_jobs set available_at=now()-interval '1 second' where id=$1", [fresh.id]);
+  await a.query("update academy.production_jobs set available_at='-infinity'::timestamptz where id=$1", [fresh.id]);
   const third = (await b.query('select * from academy.claim_job()')).rows.find(job => job.id === oldLease.id);
   assert.ok(third);
   await b.query("select academy.fail_job($1,$2,'EXHAUSTED')", [third.id, third.lease_token]);
   assert.equal((await a.query('select status from academy.production_jobs where id=$1', [third.id])).rows[0].status, 'failed');
   console.log('PASS: duplicate enqueue, concurrent claim, recovery, stale lease, renewal, backoff, exhausted attempts');
 } finally {
+  await Promise.all(clients.map(c => c.query('rollback').catch(() => {})));
   if (keys.length) await clients[0].query('delete from academy.production_jobs where idempotency_key=any($1)', [keys]).catch(() => {});
   await Promise.all(clients.map(c => c.end()));
 }

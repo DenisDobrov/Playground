@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { editorialEnabled } from '../../lib/editorial-config';
+import { editorialEnabled } from '../../../lib/editorial-config';
 import { requestLogin, signOut } from './actions';
 export const dynamic = 'force-dynamic';
 

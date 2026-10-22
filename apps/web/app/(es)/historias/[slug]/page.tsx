@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import { demoBundle } from '@science/core/demo';
 
 export function generateStaticParams() { return [{ slug: demoBundle.story.slug }]; }
@@ -6,7 +7,7 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
   const { slug } = await params;
   if (slug !== demoBundle.story.slug) notFound();
   const { article, dossier, script } = demoBundle;
-  return <main className="article-layout"><article><p className="eyebrow">EXPEDIENTE DEMO / INTELIGENCIA ARTIFICIAL</p><h1>{article.title}</h1><p className="notice">{article.aiDisclosureEs}</p>
+  return <main className="article-layout"><article><p className="eyebrow">EXPEDIENTE DEMO / INTELIGENCIA ARTIFICIAL</p><h1>{article.title}</h1><p className="notice">{article.aiDisclosureEs}</p><Link href="/en/stories/reading-ai-results" hrefLang="en">Read in English →</Link>
     {article.paragraphs.map((p, i) => <p className="article-paragraph" key={i}>{p.textEs} <a className="claim-link" href="#evidence">[{i + 1}]</a></p>)}
     <h2>Lo que este ejemplo no demuestra</h2><p>No representa una investigación real ni una evaluación independiente. Sirve para explorar el formato del portal.</p>
     <h2>El vídeo, escena a escena</h2>{script.scenes.map((s, i) => <div className="scene" key={s.id}><span className="scene-number">0{i + 1}</span><div><strong>{s.narrationEs}</strong><p>{s.visualDescription}</p><small>{s.durationSeconds} s · {s.visual} · {s.claimIds.join(', ')}</small></div></div>)}

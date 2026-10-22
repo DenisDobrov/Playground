@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { editorialClient } from '../../../lib/editorial-auth';
-import { editorialConfig } from '../../../lib/editorial-config';
+import { editorialClient } from '../../../../lib/editorial-auth';
+import { editorialConfig } from '../../../../lib/editorial-config';
 
 export async function GET(request: NextRequest) {
   const { origin } = editorialConfig();

@@ -1,0 +1,13 @@
+import { createClient } from '@supabase/supabase-js';
+import { mkdir, writeFile } from 'node:fs/promises';
+const url = process.env.SUPABASE_URL;
+if (url !== 'http://127.0.0.1:56321' || !process.env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('Gold export requires local Academy worker configuration');
+const db = createClient(url,process.env.SUPABASE_SERVICE_ROLE_KEY,{db:{schema:'academy'},auth:{persistSession:false,autoRefreshToken:false}});
+const {data,error}=await db.from('stories').select('id,title_en,story_domains(domain_id),story_sources(sources(canonical_id,url,kind,metadata)),editorial_decisions(decision,reason,created_at,actor_type)').order('created_at',{ascending:false}).limit(100);
+if(error) throw new Error(`Gold export failed: ${error.code}`);
+const candidates=(data||[]).filter(s=>s.story_sources.some(link=>(link.sources as unknown as {kind:string})?.kind==='preprint'));
+const select=(domain:string,limit:number)=>candidates.filter(s=>s.story_domains.some(d=>d.domain_id===domain)).slice(0,limit);
+const chosen=[...new Map([...select('ai',21),...select('physics',9)].map(s=>[s.id,s])).values()];
+await mkdir('artifacts/gold-set',{recursive:true});
+await writeFile('artifacts/gold-set/candidates.json',JSON.stringify({version:'selection-gold/1',exportedAt:new Date().toISOString(),status:'awaiting-independent-human-labels',instructions:'Label select/reject/context with reason in the authenticated inbox. These candidates are metadata-only, not a verified claim gold set.',candidates:chosen.map(s=>({storyId:s.id,titleEn:s.title_en,domains:s.story_domains.map(d=>d.domain_id),sources:s.story_sources.map(l=>l.sources),humanLabel:null,humanReason:null,savedHumanDecisions:s.editorial_decisions.filter(d=>d.actor_type==='human')}))},null,2));
+console.log(JSON.stringify({event:'gold.exported',count:chosen.length,path:'artifacts/gold-set/candidates.json',labels:'pending',paidCalls:0}));

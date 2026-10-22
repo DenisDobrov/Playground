@@ -1,5 +1,7 @@
 # Защищённая редакция — первый рабочий срез
 
+Актуальный статус: PR4 слит, cloud migration 004 и editor membership применены после явных подтверждений пользователя. Cloud SMTP/redirect настройки и Vercel env не менялись. Для нового source/EN среза migrations 005/006 пока только локальные; не применять все pending migrations без review. `INGESTION.md` содержит текущие границы.
+
 В live mode `/editorial` проверяет сессию через Supabase Auth и текущую membership в `academy.editor_members`. Editor добавляет DOI/arXiv и сохраняет select/reject/hold/revise с причиной. Reviewer только читает. Пользователь без membership не видит inbox, даже если уже зарегистрирован в старом приложении. Public portal остаётся синтетическим preview.
 
 ## Локально
@@ -32,7 +34,7 @@ npm run web:local
 
 Переменные читаются на сервере. Browser Supabase client не используется; сессионные cookies HttpOnly, SameSite=Lax, Secure в HTTPS. Proxy обновляет сессию и передаёт cookies в ответ; page/action отдельно проверяют пользователя и актуальную DB role. Редакционные ответы `private, no-store`, callbacks без внешних redirect URL. Публичный ключ не расширяет RLS-права.
 
-Обычные Vercel PR Preview оставить в demo. Root DB URL и service-role key в web/Vercel не нужны. Для cloud-подключения после review миграции 004 применить её штатным installer из `SUPABASE.md`, создать/выбрать Auth user и добавить membership административно. Не изменять существующие роли/пользователей старого приложения.
+Обычные Vercel PR Preview оставить в demo. Root DB URL и service-role key в web/Vercel не нужны. Migration 004 и membership пользователя уже установлены; новые pending migrations применяются отдельно после review. До подключения домена EDITORIAL_SITE_URL должен быть фактическим Production URL Vercel, например `https://<project>.vercel.app`. Показанный в таблице `dobrov.org` используется только после DNS/доменного подключения. Не изменять существующие роли/пользователей старого приложения.
 
 Для magic link добавить **точный** `https://<выбранный-host>/auth/callback` в Auth redirect allowlist, сохранив прежние URL. Текущий PKCE callback работает с default ConfirmationURL email template (проверено на локальном Supabase). Общий облачный template, Site URL, SMTP и signup settings автоматически не меняются: если старый проект имеет свой шаблон, проверить совместимость отдельно. Регистрация через форму выключена (`shouldCreateUser=false`), ответ для неизвестного/запрещённого адреса одинаковый. Allowlist ограничивает отправку писем через эту форму, DB membership определяет доступ.
 
