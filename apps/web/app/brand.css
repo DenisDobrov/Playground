@@ -89,3 +89,6 @@ blockquote { border-left-color: var(--accent); }
   .wordmark .brand-type { gap: 6px; }
   .intro:after { display: none; }
 }
+
+/* Language navigation stays usable on narrow screens. */
+.masthead nav { flex-wrap: wrap; }

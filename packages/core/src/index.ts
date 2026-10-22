@@ -1,5 +1,6 @@
 import { z } from 'zod';
 export * from './releases';
+export * from './localized-article';
 
 export const claimTypes = ['measured_result', 'author_interpretation', 'vendor_claim', 'editorial_explanation', 'speculation'] as const;
 export const stageNames = ['discovery', 'ranking', 'research', 'verification', 'writing', 'language_check', 'visual_plan', 'voice', 'render', 'editorial_review', 'publication'] as const;
@@ -120,3 +121,4 @@ export function publicationIssues(bundle: ReleaseBundle, packs = domainPacks): s
   if (!approval || approval.storyId !== story.id || !approval.actorId.trim() || !Number.isFinite(Date.parse(approval.approvedAt)) || approval.articleVersion !== article.version || approval.scriptVersion !== script.version) issues.push('Human approval for current versions required');
   return [...new Set(issues)];
 }
+export { selectionFeedback } from './selection-gold';

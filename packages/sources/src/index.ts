@@ -1,4 +1,6 @@
 /** Pure normalization only. Fetchers must use allowlists, rate limits and license metadata. */
+export * from './feeds';
+export * from './fetch';
 export function canonicalSourceId(input: string): string {
   const value = input.trim();
   const doi = value.replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '').replace(/^doi:\s*/i, '');

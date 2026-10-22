@@ -1,7 +1,7 @@
 import { demoBundle } from '@science/core/demo';
 import { publicationIssues, stageNames } from '@science/core';
 import { Studio } from './studio';
-import { editorialEnabled } from '../../lib/editorial-config';
+import { editorialEnabled } from '../../../lib/editorial-config';
 import { Inbox } from './inbox';
 export const dynamic = 'force-dynamic';
 

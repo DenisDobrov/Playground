@@ -3,7 +3,7 @@
 Read `docs/HLD.md`, `docs/IMPLEMENTATION.md` and the relevant task in `docs/BACKLOG.md` before changing architecture.
 
 ## Product invariants
-- Publication language: neutral Spanish. Canonical research and claims: English.
+- Publication languages: neutral Spanish (primary) and English. Canonical research and claims: English. Each public language revision requires its own language review and approval; dossiers are not public articles. Video pilot remains Spanish.
 - Weekly target: 10–20 stories, AI 70% / physics including space 30%; quotas never lower the quality floor.
 - Video pilot is in the MVP: one 6–8 minute video per week, narration without an avatar or presenter. Scale target after pilot: 2–3 videos/week at 8–12 minutes.
 - Article and video have separate release gates and version-bound approvals. Video uses an exact published article/dossier snapshot; video failures never block article publication.
@@ -32,4 +32,4 @@ Read `docs/HLD.md`, `docs/IMPLEMENTATION.md` and the relevant task in `docs/BACK
 - Deployment, OAuth credentials and live publications are separate tasks from this local scaffold.
 
 ## Current boundaries
-The public portal and default editorial mode are synthetic demos. Opt-in live editorial mode implements verified Supabase sessions, DB membership, manual DOI/arXiv intake and persisted selection decisions; reviewer is read-only. See docs/EDITORIAL.md. Cloud Auth configuration and migration 004 activation are separate from the locally verified implementation. Feeds, original-date verification and gold-set research remain pending. `worker:once` supports source normalization only; other stages are held. Gemini adapter exists but is not wired into paid orchestration. No verifier/TTS provider has been selected. FFmpeg renders a silent technical preview, not a finished editorial video.
+Public ES/EN pages and default editorial mode remain synthetic demos. Live editorial mode implements verified sessions, membership, manual intake and persisted decisions; reviewer is read-only. Cloud 004 and the user's editor membership are installed with explicit approval; Vercel activation/browser delivery smoke remain pending. Local feed ingestion supports allowlisted arXiv metadata and NASA discovery RSS with dates/flags, aliases and provider leases; migrations 005–007 are local only. Run a live poller in one environment only. New inbox excludes decided stories; the private catalog supports search/filters and decision history. Selection export preserves latest human reasons and provenance; hold/revise remain unresolved. See docs/EDITORIAL-FEEDBACK.md. A 30-candidate selection pool needs further independent human labels; verified claim gold set is still pending. See docs/INGESTION.md. `worker:once` still normalizes only; source CLI is separate. Paid AI, ledger, scientific verifier/TTS and publishing remain unimplemented. FFmpeg renders a silent technical preview.

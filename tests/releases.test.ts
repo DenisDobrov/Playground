@@ -18,6 +18,16 @@ function video(): VideoReleaseBundle {
     approval: { actorId: 'editor', approvedAt: '2026-10-22T12:00:00Z', renderSha256: 'a'.repeat(64), storyId: source.story.id, scriptId: script.id, scriptVersion: script.version, articleId: source.article.id, articleVersion: source.article.version, dossierVersion: 1 } };
 }
 describe('independent release contracts', () => {
+  it('requires English review and approval for a separate English revision', () => {
+    const b = article(); const es = b.article;
+    if (!('aiDisclosureEs' in es)) throw new Error('Expected legacy fixture');
+    b.article = { id: 'article-en', storyId: es.storyId, dossierVersion: 1, version: 1, language: 'en', title: 'English demonstration', paragraphs: es.paragraphs.map(p => ({ text: 'English demo prose', claimIds: p.claimIds })), aiDisclosure: 'Synthetic demonstration' };
+    b.approval!.articleId = 'article-en';
+    expect(articlePublicationIssues(b)).toContain('Target language claim alignment check required');
+    expect(articlePublicationIssues(b)).toContain('Human approval for current article and dossier required');
+    b.languageReviewLanguage = 'en'; b.approval!.language = 'en';
+    expect(articlePublicationIssues(b)).toEqual([]);
+  });
   it('allows an approved article without any script, audio or video approval', () => expect(articlePublicationIssues(article())).toEqual([]));
   it('holds video with missing audio while the article remains releasable', () => {
     const b = video(); b.audioAssetIds = [];

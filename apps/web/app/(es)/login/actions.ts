@@ -1,7 +1,7 @@
 'use server';
 import { redirect } from 'next/navigation';
-import { editorialClient } from '../../lib/editorial-auth';
-import { editorialConfig, invitedEmail } from '../../lib/editorial-config';
+import { editorialClient } from '../../../lib/editorial-auth';
+import { editorialConfig, invitedEmail } from '../../../lib/editorial-config';
 
 export async function requestLogin(form: FormData) {
   const email = String(form.get('email') || '').trim().toLowerCase();
