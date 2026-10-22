@@ -2,6 +2,8 @@
 
 ## Обновление 22 октября 2026
 
+Следующий реализованный срез: opt-in live editorial Auth + manual DOI/arXiv inbox и persisted decisions. Роли editor/reviewer проверяются server-side и в SQL RPC. Миграция 004 проверена локально; облако в этом срезе не изменено. По умолчанию Vercel previews остаются demo. Запуск и ограничения — `EDITORIAL.md`. Таблица Sprint 0 ниже отражает исходный каркас; описание отсутствия Auth относится к нему, а не к новому live mode.
+
 Актуальный план — `SPRINTS.md`, архитектура — HLD v0.3. Добавлены отдельные `articlePublicationIssues` / `videoPublicationIssues`: approval статьи связан с article/dossier revisions; видео дополнительно требует published article reference, script revision, права используемых visual/audio assets и checksum-approved MP4. Это чистые контракты, а не доверенный publisher: reviews/approval должны загружаться server-side после Auth. Старый combined `publicationIssues` deprecated и сохраняется для совместимости синтетического demo; live adapter не должен его использовать.
 
 `planSceneRenders` формирует детерминированные idempotency keys по входам сцен и отдельный assembly key. Реальные Remotion jobs, cache storage/checksum verification и SQL persistence пока отсутствуют. Cloud foundation (три миграции, academy Data API, private bucket и normalize worker smoke) уже проверен; новый Supabase project не требуется. Ниже описаны фактические границы остального каркаса.

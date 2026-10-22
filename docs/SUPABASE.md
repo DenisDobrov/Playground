@@ -72,6 +72,7 @@ Installer создаёт Academy в одной транзакции под advis
 - Обычные PR Preview пока остаются fixture/demo. Рабочие секреты общей облачной базы не выдаются каждой тестовой ветке.
 - `SUPABASE_DB_URL` нужен только локальному installer/доверенному migration runner; не добавлять его в web client.
 - Web в PR2 всё ещё demo и не требует service-role key в Vercel. Подключение UI и Auth — следующий PR.
+- После PR2 добавлен opt-in live editorial slice, инструкция — `EDITORIAL.md`. Web использует publishable/anon key с пользовательской сессией; migration 004 сначала проверена локально. В этой реализации cloud Auth, SMTP и redirect settings автоматически не меняются.
 - Рендер MP4 лучше хранить вне Postgres, с ограниченным сроком хранения и удалением временных файлов; фактические Storage/egress лимиты проверять по Dashboard перед видеопилотом.
 
 ## Тесты и текущие границы

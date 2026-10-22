@@ -4,6 +4,7 @@ import { BrandLogo } from '../components/brand-logo';
 import { brand } from '../lib/brand';
 import './globals.css';
 import './brand.css';
+import './editorial.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'),
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
 };
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="es"><body>
-    <div className="demo-banner">VISTA PREVIA · Datos ficticios · Sin publicaciones reales</div>
+    <div className="demo-banner">PORTAL EN VISTA PREVIA · Artículos públicos de demostración</div>
     <header className="masthead"><Link className="wordmark" href="/" aria-label={`${brand.name} — inicio`}><BrandLogo /></Link>
       <nav aria-label="Navegación principal"><Link href="/">El portal</Link><Link href="/editorial">La redacción</Link><Link href="/politica">Nuestro método ↗</Link></nav>
     </header>

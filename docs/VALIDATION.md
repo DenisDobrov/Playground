@@ -69,3 +69,21 @@ Demo — архитектурный каркас и интерфейс на фи
 - `git diff --check`: PASS.
 
 Новых SQL миграций или изменений cloud/Vercel/Auth в этом срезе нет; DB tests не повторялись, поскольку SQL/storage/worker не менялись. Remotion/TTS/verifier eval и фактический incremental render не запускались. Scene planner рассчитывает идентичность задач, не подтверждает существование/целостность cached output. Новые gates проверяют контракт: до публикации нужен server service, который сам загружает доверенные persisted review/approval records. Demo пока сохраняет deprecated combined gate для обратной совместимости и остаётся заблокированным к выпуску.
+
+## Auth и сохранённая редакция — 22 октября 2026
+
+Ветка `codex/editorial-auth`, поверх PR3. Миграция 004 применена **только локально**, без reset. Cloud/legacy Auth/SMTP/redirect configuration не менялись.
+
+| Проверка | Результат |
+|---|---|
+| TypeScript | PASS |
+| Unit tests | 5 файлов, 50 тестов — PASS |
+| SQL pgTAP | 5 файлов, 44 теста — PASS; editor/reviewer/outsider, RPC grants, dedupe, actor identity, idempotency, stale versions и запрет approve |
+| Две PostgreSQL сессии | PASS; предыдущие queue/dedupe/lease/retry инварианты сохранились |
+| Production build | PASS; editorial/login динамические, Proxy включён |
+| HTTP integration | PASS; реальный magic link через локальную почту и PKCE, expired-session refresh/cookies, logout, forged cookie, no-store, persisted decision после reload, dedupe, CSRF, retry, stale tab, read-only reviewer, outsider и отозванная membership |
+| Offline demo | PASS; 0 paid calls, publication blocked |
+
+HTTP runner стартует собственный Next на свободном localhost:3000, использует только API 56321 / DB 56322 / Mailpit 56324. Синтетические Auth users и данные теста удалены; код не отправляет внешних писем и не читает cloud URL из env. Создана отдельная локальная membership пользователя для ручной проверки; адрес хранится только в игнорируемом `.env.local-web`, не в fixture/репозитории.
+
+Ограничения: реальный cloud login и SMTP/redirect compatibility не проверялись; migration 004 не установлена в облаке. Automated source fetch, freshness metadata, ranking/gold-set workflow, paid models, ledger и publishing отсутствуют. Ручной intake не выдаётся за научную проверку.

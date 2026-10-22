@@ -1,0 +1,12 @@
+.auth-panel { max-width: 42rem; }
+.auth-panel form, .intake-form, .decision-form { display: grid; gap: 1rem; }
+.auth-panel label, .intake-form label, .decision-form label { display: grid; gap: .5rem; font-size: .9rem; }
+.auth-panel input, .intake-form input, .intake-form select, .decision-form select, .decision-form textarea { width: 100%; padding: .8rem; border: 1px solid #a5b7b0; border-radius: .3rem; font: inherit; color: #123c34; background: #fff; }
+.auth-panel button, .intake-form button, .decision-form button, .editorial-heading button { padding: .8rem 1.2rem; border: 0; border-radius: .3rem; background: #143a34; color: #fff; font: inherit; cursor: pointer; }
+.intake-panel, .candidate-card { border: 1px solid #c8d6cf; padding: 1.5rem; margin: 1.5rem 0; border-radius: .5rem; }
+.intake-panel h2, .candidate-card h2 { margin-top: 0; }
+.candidate-card details { margin-top: 1rem; overflow-wrap: anywhere; }
+.candidate-card li { margin: .8rem 0; }
+.candidate-card a { overflow-wrap: anywhere; }
+.editorial-notice { padding: 1rem; background: #e1eee5; border-left: 3px solid #143a34; }
+@media (min-width: 850px) { .intake-form { grid-template-columns: 1fr 1fr; } .decision-form { grid-template-columns: 12rem 1fr auto; align-items: end; } }
