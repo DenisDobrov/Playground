@@ -80,3 +80,5 @@ CI рассчитан на репозиторий с корнем в этой п
 ### SCI-001 — импорт внешних обзоров
 
 В live редакции: `/editorial/imports` → вставить Markdown или загрузить файл → preview → выбрать секции/identity → подтвердить. Оригинал доступен в приватном архиве; повтор не создаёт дублей. Контракт и ограничения — [docs/SCI-001.md](docs/SCI-001.md). `npm run test:reviews:integration` демонстрирует импорт настоящего обзора в локальной транзакции с rollback.
+
+SCI-001 final review: после локальной миграции 010 выполнить `npm run web:local:review-key` и перезапустить web. Для подтверждения импорта теперь нужен dedicated server parser attestation; подробности и merge gate — [docs/SCI-001-FINAL-REVIEW.md](docs/SCI-001-FINAL-REVIEW.md). SCI-002 только спланирован в [docs/SCI-002-PLAN.md](docs/SCI-002-PLAN.md).

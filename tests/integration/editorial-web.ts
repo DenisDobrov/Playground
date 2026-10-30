@@ -59,6 +59,7 @@ function formFrom(html: string, marker: string): FormData {
   assert.ok(body, `Missing form ${marker}`);
   const form = new FormData();
   for (const match of body.matchAll(/<input\b[^>]*>/g)) {
+    if (/type="checkbox"/.test(match[0]) && !/\schecked(?:[=\s>])/.test(match[0])) continue;
     const name = match[0].match(/name="([^"]+)"/)?.[1];
     const value = match[0].match(/value="([^"]*)"/)?.[1];
     if (name) form.set(unescapeHtml(name), unescapeHtml(value || ''));
@@ -82,6 +83,7 @@ async function sessionWithoutEmail(email: string) {
 let web: ReturnType<typeof spawn> | undefined;
 try {
   await db.connect();
+  const reviewSigningKey=(await db.query("select encode(secret,'hex') as value from academy.review_import_signing_key where id")).rows[0].value;
   for (const email of emails) {
     const { data, error } = await admin.auth.admin.createUser({ email, email_confirm: true });
     assert.ok(!error && data.user, 'Test mailbox already exists or local Auth is unavailable; do not delete unrelated accounts');
@@ -93,7 +95,7 @@ try {
     const probe = createServer(); probe.once('error', reject); probe.listen(3000, 'localhost', () => probe.close(() => resolve()));
   });
   web = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', 'apps/web', '--hostname', 'localhost', '--port', '3000'], {
-    windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, EDITORIAL_MODE: 'live', EDITORIAL_SUPABASE_URL: api, EDITORIAL_SUPABASE_PUBLISHABLE_KEY: publicKey, EDITORIAL_SITE_URL: origin, EDITORIAL_EMAIL_ALLOWLIST: emails.join(',') }
+    windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, EDITORIAL_MODE: 'live', EDITORIAL_SUPABASE_URL: api, EDITORIAL_SUPABASE_PUBLISHABLE_KEY: publicKey, EDITORIAL_SITE_URL: origin, EDITORIAL_EMAIL_ALLOWLIST: emails.join(','), EDITORIAL_REVIEW_SIGNING_KEY:reviewSigningKey }
   });
   await new Promise<void>((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error('Local Next server startup timeout; run npm run build first')), 30000);
@@ -209,6 +211,7 @@ try {
   intakeImport.set('markdown',report);intakeImport.set('sourceType','chatgpt');
   const previewResponse=await editor.post(intakeImport,origin,'/editorial/imports');
   assert.equal(previewResponse.status,200);const previewHtml=await previewResponse.text();
+  assert.ok(!previewHtml.includes(reviewSigningKey),'Dedicated signing key never reaches browser HTML');
   assert.match(previewHtml,/Confirmar selección/);assert.match(previewHtml,/Future HTTP fixture/);assert.match(previewHtml,/Falta una publicación primaria/);
   assert.equal((await db.query('select count(*) from academy.external_reviews')).rows[0].count,beforeReviews,'Preview has no writes');
   let fileForm=formFrom(await (await editor.request('/editorial/imports')).text(),'markdown');
@@ -217,6 +220,7 @@ try {
   assert.match(filePreview,/Confirmar selección/,'Markdown upload previews the same workflow');
   const confirm=formFrom(previewHtml,'document');
   confirm.append('selected','section-1');confirm.append('selected','section-2');confirm.append('selected','section-3');confirm.set('identity:section-1',reviewArxiv);
+  confirm.set('extraction',JSON.stringify({title:'FORGED CLIENT METADATA',verification:'verified'}));
   assert.ok((await editor.post(confirm,'https://attacker.example','/editorial/imports')).status>=400,'Import action rejects cross-origin requests');
   const imported=await editor.post(confirm,origin,'/editorial/imports');
   assert.match(imported.headers.get('location')||'',/^\/editorial\/imports\/[a-f0-9-]{36}$/);
@@ -225,6 +229,7 @@ try {
   assert.equal((await db.query('select count(*)::int n from academy.external_review_items where review_id=$1',[reviewId])).rows[0].n,3);
   const original=(await db.query('select markdown from academy.external_reviews where id=$1',[reviewId])).rows[0].markdown;
   assert.equal(original,JSON.parse(String(confirm.get('document'))),'Received original survives preview/confirmation without further normalization');
+  assert.equal((await db.query("select extraction->>'title' as title from academy.external_review_items where review_id=$1 and item_key='section-1'",[reviewId])).rows[0].title,'Fundamental physics: HTTP imported paper','Client-supplied extraction is ignored; only fresh server parsing is attested');
   const uploadConfirm=formFrom(filePreview,'document');uploadConfirm.append('selected','section-1');uploadConfirm.set('identity:section-1',reviewArxiv);
   assert.equal((await editor.post(uploadConfirm,origin,'/editorial/imports')).headers.get('location'),imported.headers.get('location'),'Paste/upload line endings reuse one document');
   reviewStory=(await db.query('select story_id from academy.external_review_items where review_id=$1 and item_key=$2',[reviewId,'section-1'])).rows[0].story_id;

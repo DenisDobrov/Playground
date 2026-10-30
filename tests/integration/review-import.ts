@@ -3,12 +3,13 @@ import pg from 'pg';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
 import assert from 'node:assert/strict';
-import {parseExternalReview} from '@science/sources';
+import {parseExternalReview,prepareReviewImport} from '@science/sources';
 const db=new pg.Client({connectionString:'postgresql://postgres:postgres@127.0.0.1:56322/postgres'});
 const markdown=await readFile('tests/fixtures/weekly-review-2026-10-23.md','utf8');
 const parsed=parseExternalReview(markdown);
 try {
   await db.connect();await db.query('begin');
+  const signingKey=(await db.query("select encode(secret,'hex') as value from academy.review_import_signing_key where id")).rows[0].value;
   const user=randomUUID();
   await db.query('insert into auth.users(id,email) values($1,$2)',[user,`${user}@review.example.test`]);
   await db.query("insert into academy.editor_members(user_id,role) values($1,'editor')",[user]);
@@ -17,8 +18,9 @@ try {
   const version=(await db.query('select editorial_version from academy.stories where id=$1',[old])).rows[0].editorial_version;
   await db.query("select academy.record_selection($1,'hold','Rollback demonstration: await journal event',$2,$3)",[old,version,randomUUID()]);
   const beforeClaims=(await db.query('select count(*) from academy.claims')).rows[0].count;
-  const items=parsed.candidates.map(c=>({key:c.key,extraction:c,identity:c.key==='section-2' ? 'arxiv:2504.16746' : c.references.find(r=>r.role==='primary_candidate')?.canonicalId || null,reopen:c.key==='section-2'}));
-  const confirm=()=>db.query("select academy.import_external_review($1,'chatgpt',$2,$3) as id",[markdown,parsed.parserVersion,JSON.stringify(items)]);
+  const choices=parsed.candidates.map(c=>({key:c.key,identity:c.key==='section-2' ? 'arxiv:2504.16746' : c.references.find(r=>r.role==='primary_candidate')?.canonicalId || null,reopen:c.key==='section-2'}));
+  const request=prepareReviewImport(markdown,'chatgpt',user,choices,signingKey);
+  const confirm=()=>db.query('select academy.import_external_review($1,$2,$3,$4,$5) as id',[request.p_markdown,request.p_source_type,request.p_parser_version,request.p_items,request.p_attestation]);
   const id=(await confirm()).rows[0].id;
   assert.equal((await confirm()).rows[0].id,id);
   const original=(await db.query('select markdown,content_hash from academy.external_reviews where id=$1',[id])).rows[0];
