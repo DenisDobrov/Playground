@@ -43,7 +43,8 @@
     "budget:local:rehearse": "tsx --env-file=.env.local-worker apps/worker/src/production-budget.ts rehearse",
     "production:local:plan": "tsx --env-file=.env.local-worker apps/worker/src/production-budget.ts plan",
     "test:budget:integration": "tsx tests/integration/budget.ts",
-    "budget:local:recover": "tsx --env-file=.env.local-worker apps/worker/src/production-budget.ts recover"
+    "budget:local:recover": "tsx --env-file=.env.local-worker apps/worker/src/production-budget.ts recover",
+    "test:reviews:integration": "tsx tests/integration/review-import.ts"
   },
   "devDependencies": {
     "@types/node": "26.6.5",

@@ -76,3 +76,7 @@ CI рассчитан на репозиторий с корнем в этой п
 ### Бюджет производства (PR6)
 
 Локальная редакция: `/editorial/budget`. Ledger учитывает news analysis, текст/сценарии, голос и видео. Команды `budget:local:init`, `budget:local:review`, `production:local:plan`; контракт, лимиты и сверка — [docs/PRODUCTION-BUDGET.md](docs/PRODUCTION-BUDGET.md). Платные сервисы этим не включаются.
+
+### SCI-001 — импорт внешних обзоров
+
+В live редакции: `/editorial/imports` → вставить Markdown или загрузить файл → preview → выбрать секции/identity → подтвердить. Оригинал доступен в приватном архиве; повтор не создаёт дублей. Контракт и ограничения — [docs/SCI-001.md](docs/SCI-001.md). `npm run test:reviews:integration` демонстрирует импорт настоящего обзора в локальной транзакции с rollback.

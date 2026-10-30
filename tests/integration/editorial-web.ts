@@ -19,6 +19,10 @@ const db = new pg.Client({ connectionString: 'postgresql://postgres:postgres@127
 const emails = ['editor@academy.example.test', 'reviewer@academy.example.test', 'outsider@academy.example.test'];
 const userIds: string[] = [];
 const paginationIds: string[] = [];
+const reviewIds:string[]=[];
+const reviewArxiv=`arxiv:9901.${String(Math.floor(Math.random()*100000)).padStart(5,'0')}`;
+let reviewStory:string|undefined;
+let reviewOwned=false;
 const budgetMonth='2095-01-01';
 let budgetFixture=false;
 const canonical = `doi:10.9999/academy-e2e-${randomUUID()}`;
@@ -111,6 +115,7 @@ try {
   assert.equal((await anon.request('/editorial')).headers.get('location'), '/login');
   assert.equal((await anon.request('/editorial/stories')).headers.get('location'), '/login');
   assert.equal((await anon.request('/editorial/budget')).headers.get('location'), '/login');
+  assert.equal((await anon.request('/editorial/imports')).headers.get('location'), '/login');
   anon.cookies.set('da-academy-auth', 'base64-forged-session');
   assert.equal((await anon.request('/editorial')).headers.get('location'), '/login');
   const editor = new Browser();
@@ -195,6 +200,38 @@ try {
   assert.equal((pageTwo.match(/class="candidate-card"/g)||[]).length,1,'Second page includes the remaining story');
   assert.equal((await editor.request('/editorial/stories?q=' + marker + '&page=999')).status,200,'Out-of-range page remains a usable empty result');
   const outsider = await sessionWithoutEmail(emails[2]);
+  // Paste/file preview is read-only; only confirmed selections enter the editorial workflow.
+  assert.equal((await db.query('select count(*)::int n from academy.sources where canonical_id=$1',[reviewArxiv])).rows[0].n,0,'Refuse to adopt an existing import test source');
+  reviewOwned=true;
+  let intakeImport=formFrom(await (await editor.request('/editorial/imports')).text(),'markdown');
+  const report=`# HTTP review\n\n# 1. Fundamental physics: HTTP imported paper\n**Published: 23 October 2026**\n**Journal: Fixture**\n## What changed\nNew observation reported.\nhttps://arxiv.org/abs/${reviewArxiv.slice(6)}v2\n## Hype check\nUnverified synthetic fixture.\n# 2. Neuroscience: Future HTTP fixture\n## What changed\nA proposal.\n## Hype check\nNo evidence.\n# 3. Artificial intelligence: HTTP missing primary\n## What changed\nA press release.\nhttps://example.org/news/fixture\n## Hype check\nFind the primary source.\n`;
+  const beforeReviews=(await db.query('select count(*) from academy.external_reviews')).rows[0].count;
+  intakeImport.set('markdown',report);intakeImport.set('sourceType','chatgpt');
+  const previewResponse=await editor.post(intakeImport,origin,'/editorial/imports');
+  assert.equal(previewResponse.status,200);const previewHtml=await previewResponse.text();
+  assert.match(previewHtml,/Confirmar selección/);assert.match(previewHtml,/Future HTTP fixture/);assert.match(previewHtml,/Falta una publicación primaria/);
+  assert.equal((await db.query('select count(*) from academy.external_reviews')).rows[0].count,beforeReviews,'Preview has no writes');
+  let fileForm=formFrom(await (await editor.request('/editorial/imports')).text(),'markdown');
+  fileForm.set('file',new File([report],'review.md',{type:'text/markdown'}));fileForm.set('sourceType','chatgpt');
+  const filePreview=await (await editor.post(fileForm,origin,'/editorial/imports')).text();
+  assert.match(filePreview,/Confirmar selección/,'Markdown upload previews the same workflow');
+  const confirm=formFrom(previewHtml,'document');
+  confirm.append('selected','section-1');confirm.append('selected','section-2');confirm.append('selected','section-3');confirm.set('identity:section-1',reviewArxiv);
+  assert.ok((await editor.post(confirm,'https://attacker.example','/editorial/imports')).status>=400,'Import action rejects cross-origin requests');
+  const imported=await editor.post(confirm,origin,'/editorial/imports');
+  assert.match(imported.headers.get('location')||'',/^\/editorial\/imports\/[a-f0-9-]{36}$/);
+  const reviewId=imported.headers.get('location')!.split('/').pop()!;reviewIds.push(reviewId);
+  assert.equal((await editor.post(confirm,origin,'/editorial/imports')).headers.get('location'),imported.headers.get('location'),'Reimport reuses one original');
+  assert.equal((await db.query('select count(*)::int n from academy.external_review_items where review_id=$1',[reviewId])).rows[0].n,3);
+  const original=(await db.query('select markdown from academy.external_reviews where id=$1',[reviewId])).rows[0].markdown;
+  assert.equal(original,JSON.parse(String(confirm.get('document'))),'Received original survives preview/confirmation without further normalization');
+  const uploadConfirm=formFrom(filePreview,'document');uploadConfirm.append('selected','section-1');uploadConfirm.set('identity:section-1',reviewArxiv);
+  assert.equal((await editor.post(uploadConfirm,origin,'/editorial/imports')).headers.get('location'),imported.headers.get('location'),'Paste/upload line endings reuse one document');
+  reviewStory=(await db.query('select story_id from academy.external_review_items where review_id=$1 and item_key=$2',[reviewId,'section-1'])).rows[0].story_id;
+  const archive=await (await reviewer.request('/editorial/imports/'+reviewId)).text();assert.match(archive,/Markdown original completo/);assert.match(archive,/future_scope/);assert.match(archive,/needs_identification/);
+  assert.ok(!(await (await reviewer.request('/editorial/imports')).text()).includes('name="markdown"'),'Reviewer cannot prepare imports');
+  assert.ok((await reviewer.post(confirm,origin,'/editorial/imports')).status>=400,'Reviewer cannot invoke confirm directly');
+  assert.match((await outsider.request('/editorial/imports/'+reviewId)).headers.get('location')||'',/notice=access/);
   assert.match((await outsider.request('/editorial/stories')).headers.get('location') || '', /notice=access/);
   assert.match((await outsider.request('/editorial/budget?month=2095-01')).headers.get('location') || '', /notice=access/);
   assert.match((await outsider.request('/editorial')).headers.get('location') || '', /notice=access/);
@@ -203,10 +240,24 @@ try {
   const logout = formFrom(afterReload, 'logout');
   assert.equal((await editor.post(logout)).headers.get('location'), '/login');
   assert.equal((await editor.request('/editorial')).headers.get('location'), '/login');
-  console.log('PASS: Auth/PKCE, refresh/logout, private reads, inbox/catalog, read-only budget dashboard, decision history, CSRF, retries, stale tab, reviewer and revoked membership');
+  console.log('PASS: Auth/PKCE, inbox/catalog/budget, Markdown paste/upload preview without writes, selected confirm/reimport, source provenance, scope/manual flags, CSRF and roles');
 } finally {
   if (web && web.exitCode === null) web.kill();
   if (userIds.length) {
+    reviewIds.push(...(await db.query('select id from academy.external_reviews where imported_by=any($1::uuid[])',[userIds])).rows.map(r=>r.id));
+    if(reviewIds.length) {
+      await db.query('delete from academy.scientific_events where review_item_id in (select id from academy.external_review_items where review_id=any($1::uuid[]))',[reviewIds]);
+      await db.query('delete from academy.external_review_items where review_id=any($1::uuid[])',[reviewIds]);
+      await db.query('delete from academy.external_reviews where id=any($1::uuid[])',[reviewIds]);
+    }
+    if(reviewOwned) {
+      if(!reviewStory) reviewStory=(await db.query("select id from academy.stories where slug='source-'||md5($1)",[reviewArxiv])).rows[0]?.id;
+      if(reviewStory) {
+        for(const table of ['production_jobs','editorial_decisions','story_sources','story_domains']) await db.query(`delete from academy.${table} where story_id=$1`,[reviewStory]);
+        await db.query('delete from academy.stories where id=$1',[reviewStory]);
+      }
+      await db.query('delete from academy.sources where canonical_id=$1',[reviewArxiv]);
+    }
     if(budgetFixture) {
       await db.query('delete from academy.budget_events where operation_id in (select id from academy.budget_operations where month=$1)',[budgetMonth]);
       await db.query('delete from academy.budget_operations where month=$1',[budgetMonth]);

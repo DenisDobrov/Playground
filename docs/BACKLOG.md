@@ -85,3 +85,7 @@ PR2 использует существующий To-do-Db-project в схеме
 Shorts, weekly digest, Telegram/выбранные соцсети, historian citation watch, семантическая дедупликация/pgvector, улучшенный graph UI, retention analytics с ограничениями честности, дополнительные DomainPack. Медицина только с профильной политикой и экспертом.
 
 Обновление после merge PR5: PR6 добавляет production budget ledger и локальные инструменты news brief/планирования. Приоритет пользователя — анализ новостей, контент, голос и видео; paid research/verifier benchmark отложены. Контракт и проверки — PRODUCTION-BUDGET.md, порядок — SPRINTS.md.
+
+## SCI-001 — External Research Review Import
+
+Реализован deterministic Markdown paste/upload → read-only preview → selected authenticated import с оригиналом, provenance, identity dedupe, future-scope archive и reported scientific events. Контракт/DoD — `SCI-001.md`. Следующий предлагаемый срез SCI-002 — primary metadata enrichment и lineage-preserving разрешение pending identity, затем content brief/voice/video; paid research не запускается.

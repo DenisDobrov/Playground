@@ -40,9 +40,13 @@ export async function Inbox({ notice, catalog = false, params = {} }: { notice?:
   const { data: feeds, error: feedError } = await client.from('feed_state').select('id,checked_at,latest_entry_at,last_error');
   if (feedError && !['PGRST205','42P01'].includes(feedError.code)) throw new Error('Feed status is unavailable');
   if (error) throw new Error('Editorial inbox is unavailable');
+  const storyIds=stories?.map(s=>s.id)||[];
+  const provenance=storyIds.length ? await client.from('external_review_items').select('story_id,review_id').in('story_id',storyIds) : {data:[],error:null};
+  const scientificEvents=storyIds.length ? await client.from('scientific_events').select('story_id,kind,reported_date,needs_review').in('story_id',storyIds).order('reported_at',{ascending:false}).limit(100) : {data:[],error:null};
+  for(const result of [provenance,scientificEvents]) if(result.error && !['PGRST205','42P01'].includes(result.error.code)) throw new Error('External review provenance is unavailable');
   return <main>
     <div className="editorial-heading"><div><p className="eyebrow">REDACCIÓN / SHADOW MODE</p><h1>{catalog ? 'Todas las historias.' : 'Nuevas historias.'}</h1><p>{user.email} · {role === 'editor' ? 'Editor' : 'Revisor · solo lectura'}</p></div><form action={signOut}><button type="submit">Cerrar sesión</button></form></div>
-    <nav className="editorial-navigation" aria-label="Vistas editoriales"><a href="/editorial" aria-current={!catalog ? 'page' : undefined}>Nuevas · sin decisión</a><a href="/editorial/stories" aria-current={catalog ? 'page' : undefined}>Todas las historias</a><a href="/editorial/budget">Presupuesto</a></nav>
+    <nav className="editorial-navigation" aria-label="Vistas editoriales"><a href="/editorial" aria-current={!catalog ? 'page' : undefined}>Nuevas · sin decisión</a><a href="/editorial/stories" aria-current={catalog ? 'page' : undefined}>Todas las historias</a><a href="/editorial/imports">Informes externos</a><a href="/editorial/budget">Presupuesto</a></nav>
     <p>Fuentes registradas para revisión. Seleccionar una historia no verifica sus afirmaciones ni la publica.</p>
     <details><summary>Estado de las fuentes</summary>{feedError ? <p>Las fuentes automáticas todavía no están activadas en esta base.</p> : <ul>{feeds?.map(f => <li key={f.id}>{f.id}: {feedFreshness(f.latest_entry_at,new Date().toISOString())} · {f.last_error || 'sin error'} · {f.checked_at || 'sin comprobar'}</li>)}</ul>}</details>
     {notice && notices[notice] && <p className="editorial-notice" role="status">{notices[notice]}</p>}
@@ -62,6 +66,8 @@ export async function Inbox({ notice, catalog = false, params = {} }: { notice?:
       {!stories?.length && <p>{catalog ? 'No hay historias con estos filtros.' : 'No quedan historias nuevas en esta tanda. Las decisiones guardadas están en Todas las historias.'}</p>}
       {stories?.map(story => <article className="candidate-card" key={story.id}>
         <p className="eyebrow">{story.story_domains.map(d => d.domain_id).join(' / ')} · {statuses[story.status] || story.status}</p><h2>{story.title_en}</h2>
+        {[...new Set(provenance.data?.filter(p=>p.story_id===story.id).map(p=>p.review_id))].map(id=><p key={id}><a href={'/editorial/imports/'+id}>Informe externo original · sin verificar</a></p>)}
+        {scientificEvents.data?.filter(e=>e.story_id===story.id).map((e,i)=><p className="notice" key={i}>Evento comunicado: {e.kind} · {e.reported_date||'fecha no indicada'} · sin verificar{e.needs_review ? ' · revisión pendiente' : ''}</p>)}
         {story.story_sources.map((link, i) => link.sources && <div key={i}><a href={link.sources.url} rel="noreferrer" target="_blank">{link.sources.canonical_id} ↗</a><p>Publicación original: {link.sources.metadata.originalPublishedAt || 'pendiente de verificar'}<br />Revisión: {link.sources.metadata.revisionAt || '—'} · Comunicado: {link.sources.metadata.pressReleaseAt || '—'}</p>{link.sources.metadata.primarySourceRequired && <p className="notice">Comunicado institucional: falta identificar el estudio primario.</p>}{link.sources.metadata.flags?.length ? <p className="notice">Revisar: {link.sources.metadata.flags.map(f=>flagLabels[f] || 'Comprobar los datos de origen').join('; ')}</p> : null}</div>)}
         {role === 'editor' && story.status !== 'published' && <form action={recordSelection} className="decision-form">
           <input type="hidden" name="returnTo" value={catalog ? catalogUrl(filters) : '/editorial'} /><input type="hidden" name="storyId" value={story.id} /><input type="hidden" name="version" value={story.editorial_version} /><input type="hidden" name="requestId" value={randomUUID()} />

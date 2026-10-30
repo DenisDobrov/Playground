@@ -89,3 +89,7 @@ OAuth YouTube и Supabase Google login — разные решения: поль
 Не обновлять текст опубликованной revision на месте. Новая Article/Script version → новая review/approval → Publication указывает точные revisions. Correction ссылается на старую и новую статью. Для YouTube нужна политика pinned comment/description либо перевыпуск при существенной ошибке; её должен реализовать адаптер.
 
 Обновление после merge PR5: PR6 добавляет production budget ledger и локальные инструменты news brief/планирования. Приоритет пользователя — анализ новостей, контент, голос и видео; paid research/verifier benchmark отложены. Контракт и проверки — PRODUCTION-BUDGET.md, порядок — SPRINTS.md.
+
+## SCI-001 — 30 октября 2026
+
+Добавлены `/editorial/imports`, архив оригиналов и связь из каталога; pure parser переиспользует canonical source IDs, confirmation — существующие editor RPC. Миграция 009 локальная. Original/hash/sections и reported events никогда не становятся verified evidence автоматически. Реальный weekly fixture проверяется rollback-only integration; production cloud activation по-прежнему отдельная задача. Детали — `SCI-001.md`.
