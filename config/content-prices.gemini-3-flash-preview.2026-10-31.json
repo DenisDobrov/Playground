@@ -1,0 +1,11 @@
+{
+  "version": "google-paid-standard-text-gemini-3-flash-preview/2026-10-31",
+  "model": "gemini-3-flash-preview",
+  "billingTier": "paid",
+  "reviewedAt": "2026-10-31T14:02:00Z",
+  "expiresAt": "2026-11-01T14:02:00Z",
+  "sourceUrl": "https://ai.google.dev/gemini-api/docs/pricing",
+  "inputMicrosPerMillion": 500000,
+  "cachedInputMicrosPerMillion": 50000,
+  "outputMicrosPerMillion": 3000000
+}
