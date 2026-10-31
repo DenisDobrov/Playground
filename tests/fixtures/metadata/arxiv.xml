@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:arxiv="http://arxiv.org/schemas/atom">
+<entry><id>http://arxiv.org/abs/9910.00001v3</id><title>Synthetic quantum experiment</title>
+<author><name>Ada Example</name></author><author><name>Ben Sample</name></author>
+<summary>Synthetic abstract used only for deterministic metadata tests.</summary>
+<published>1999-10-01T00:00:00Z</published><updated>2026-10-01T00:00:00Z</updated>
+<category term="quant-ph"/><category term="physics.atom-ph"/>
+<arxiv:doi>10.9999/sci002-fixture</arxiv:doi><arxiv:journal_ref>Synthetic Journal 12 (2026)</arxiv:journal_ref>
+</entry></feed>

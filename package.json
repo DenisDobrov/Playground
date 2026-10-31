@@ -45,7 +45,9 @@
     "test:budget:integration": "tsx tests/integration/budget.ts",
     "budget:local:recover": "tsx --env-file=.env.local-worker apps/worker/src/production-budget.ts recover",
     "test:reviews:integration": "tsx tests/integration/review-import.ts",
-    "web:local:review-key": "node scripts/local-review-signing-env.mjs"
+    "web:local:review-key": "node scripts/local-review-signing-env.mjs",
+    "test:metadata:integration": "tsx tests/integration/metadata.ts",
+    "test:metadata:network": "tsx --env-file=.env.local-worker tests/integration/metadata-network.ts"
   },
   "devDependencies": {
     "@types/node": "26.6.5",

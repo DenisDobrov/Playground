@@ -19,4 +19,7 @@
 .intake-form textarea { width:100%; padding:.8rem; border:1px solid #a5b7b0; border-radius:.3rem; font:inherit; color:#123c34; background:#fff; }
 .review-text { white-space:pre-wrap; overflow-wrap:anywhere; font:inherit; line-height:1.6; }
 .review-hash { overflow-wrap:anywhere; }
+.metadata-panel form, .metadata-panel label { display:grid; gap:.6rem; margin:1rem 0; }
+.metadata-panel input:not([type="checkbox"]), .metadata-panel select, .metadata-panel textarea { width:100%; padding:.8rem; border:1px solid #a5b7b0; border-radius:.3rem; font:inherit; color:#123c34; background:#fff; }
+.metadata-panel button { justify-self:start; padding:.8rem 1.2rem; border:0; border-radius:.3rem; background:#143a34; color:#fff; font:inherit; cursor:pointer; }
 @media (min-width: 850px) { .intake-form { grid-template-columns: 1fr 1fr; } .decision-form { grid-template-columns: 12rem 1fr auto; align-items: end; } }

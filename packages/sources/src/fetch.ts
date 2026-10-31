@@ -20,11 +20,23 @@ export function retryDelay(header: string | undefined, now = Date.now()): number
 export async function fetchFeed(id: FeedId, conditional: { etag?: string | null; lastModified?: string | null } = {}): Promise<FeedResponse> {
   const feed = feedRegistry[id];
   if (!Object.hasOwn(feedRegistry,id)) throw new Error('Unknown feed');
+  const response = await boundedMetadataRequest(feed.url, 'xml', conditional);
+  if(response.status===404) throw new Error('Feed not found');
+  return response;
+}
+/** Internal transport: callers construct endpoints from validated identifiers, never arbitrary input URLs. */
+export async function boundedMetadataRequest(url: string, format: 'xml'|'json', conditional: {etag?:string|null;lastModified?:string|null} = {}): Promise<FeedResponse> {
+  const target = new URL(url);
+  if (target.protocol !== 'https:' || target.username || target.password || target.port ||
+    !((target.hostname === 'export.arxiv.org' && target.pathname === '/api/query') ||
+      (target.hostname === 'api.crossref.org' && target.pathname.startsWith('/works/')) ||
+      (target.hostname === 'www.nasa.gov' && target.pathname === '/news-release/feed/'))) throw new Error('Unapproved metadata endpoint');
   const headers: Record<string, string> = { 'User-Agent': 'DobrovAcademy/0.1 (+https://dobrov.org)', Accept: 'application/atom+xml, application/rss+xml, application/xml, text/xml', 'Accept-Encoding': 'identity' };
   if (conditional.etag) headers['If-None-Match'] = conditional.etag;
   if (conditional.lastModified) headers['If-Modified-Since'] = conditional.lastModified;
   return new Promise((resolve, reject) => {
-    const req = request(feed.url, { headers, signal: AbortSignal.timeout(20000), lookup(host, options, callback) {
+    headers.Accept = format === 'json' ? 'application/json' : headers.Accept;
+    const req = request(target, { headers, signal: AbortSignal.timeout(20000), lookup(host, options, callback) {
       dnsLookup(host, { all: true, family: 4 }, (error, addresses) => {
         if (error || !addresses.length || addresses.some(a => !isPublicAddress(a.address))) return callback(new Error('Feed DNS address rejected'), '', 4);
         if (typeof options === 'object' && options.all) (callback as Function)(null, addresses);
@@ -33,10 +45,10 @@ export async function fetchFeed(id: FeedId, conditional: { etag?: string | null;
     } }, res => {
       const status = res.statusCode || 0;
       const result: FeedResponse = { status, text: '', etag: res.headers.etag || null, lastModified: res.headers['last-modified'] || null, retryAfterSeconds: retryDelay(res.headers['retry-after']) };
-      if (![200, 304, 429, 503].includes(status)) { res.destroy(); reject(new Error(`Feed HTTP ${status}; redirects are not followed`)); return; }
+      if (![200, 304, 404, 429, 503].includes(status)) { res.destroy(); reject(new Error(`Feed HTTP ${status}; redirects are not followed`)); return; }
       if (status !== 200) { res.destroy(); resolve(result); return; }
       if (res.headers['content-encoding'] && res.headers['content-encoding'] !== 'identity') { res.destroy(); reject(new Error('Unexpected content encoding')); return; }
-      if (!/(xml|rss|atom)/i.test(res.headers['content-type'] || '')) { res.destroy(); reject(new Error('Expected XML response')); return; }
+      if (!(format === 'json' ? /json/i : /(xml|rss|atom)/i).test(res.headers['content-type'] || '')) { res.destroy(); reject(new Error('Unexpected metadata format')); return; }
       const chunks: Buffer[] = []; let size = 0;
       res.on('data', (chunk: Buffer) => { size += chunk.length; if (size > 2_000_000) res.destroy(new Error('Feed response too large')); else chunks.push(chunk); });
       res.on('end', () => resolve({ ...result, text: Buffer.concat(chunks).toString('utf8') }));

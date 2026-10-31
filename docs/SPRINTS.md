@@ -37,3 +37,8 @@ PR2–5 слиты. Есть Auth/manual decisions, реальные локал�
 Полноценные evidence-backed dossier/claims, независимая научная и языковая проверки, отдельные approvals ES/EN и видео остаются обязательными. Paid verifier comparison Claude/OpenAI выполняется позже на содержательном gold set, с проверенными model IDs/тарифами и отдельным лимитом. Для public web release нужны серверный publisher и corrections; для YouTube — OAuth/resumable private upload, reconciliation и отдельное подтверждение public release. Видео не блокирует статью.
 
 Сначала локальные инструменты и preview; worker host/домен/Vercel live activation — отдельные настройки. Google используется только для Gemini/YouTube. При нехватке бюджета снижаем объём, сохраняя evidence, права и review.
+
+
+## SCI-002 — primary metadata / reviewed identities
+
+Бесплатные arXiv/Crossref lookup через существующий bounded transport, provider lease и worker queue; immutable snapshots, ручное подтверждение DOI↔arXiv, append-only pending resolution и reviewed event reconciliation реализованы локально в migration 011. Новые feed DOI suggestions больше не создают alias автоматически; старые aliases сохранены. Метаданные не верифицируют научные claims. Команды, ограничения и минимальный следующий content pilot — [SCI-002.md](SCI-002.md). Cloud/production не менялись; paid LLM не вызывались.

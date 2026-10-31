@@ -90,9 +90,9 @@ Shorts, weekly digest, Telegram/выбранные соцсети, historian cit
 
 Реализован deterministic Markdown paste/upload → read-only preview → selected authenticated import с оригиналом, provenance, identity dedupe, future-scope archive и reported scientific events. Контракт/DoD — `SCI-001.md`. Следующий предлагаемый срез SCI-002 — primary metadata enrichment и lineage-preserving разрешение pending identity, затем content brief/voice/video; paid research не запускается.
 
-## SCI-002 — Primary Source Metadata Enrichment (план, не реализовано)
+## SCI-002 — Primary Source Metadata Enrichment (реализовано локально)
 
-arXiv metadata verification, Crossref DOI lookup, reviewed DOI/arXiv alias linking и append-only pending identity resolution с immutable metadata snapshots. Reported claims/events и fetched metadata различаются; 0 paid LLM calls. Порядок, reuse и acceptance criteria — SCI-002-PLAN.md. HLD/MVP не расширяются этим планом.
+arXiv metadata verification, Crossref DOI lookup, reviewed DOI/arXiv alias linking и append-only pending identity resolution с immutable metadata snapshots. Reported claims/events и fetched metadata различаются; 0 paid LLM calls. Порядок, reuse и acceptance criteria — SCI-002-PLAN.md. HLD/MVP не расширяются этим срезом. Контракт и readiness следующего content pilot — SCI-002.md.
 
 ## FUT-ARXIV-001 — Original manuscript preparation and human-controlled submission (после MVP)
 

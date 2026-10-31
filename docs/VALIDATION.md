@@ -139,3 +139,12 @@ Typecheck, production build, offline demo — PASS. 61 unit test и 67 SQL asser
 73 unit tests — PASS; 127 SQL assertions — PASS. Actual-review signed import/reimport — PASS с rollback; HTTP Auth/Server Actions — PASS, включая подставленный клиентом extraction (игнорируется), paste/upload и повтор. Queue и budget integration — PASS; Typecheck, production build и offline demo — PASS. Платных вызовов нет. Дополнительный local PostgREST smoke подтвердил подписанный вызов с настоящей editor-сессией. Native form test harness исправлен: unchecked checkbox не отправляется, как в браузере.
 
 Приватный ключ сгенерирован/настроен только для локальной Academy DB и ignored .env.local-web без вывода значения и без изменения allowlist. Cloud migrations и live production settings не выполнялись. SCI-002 только спланирован; FUT-ARXIV-001 — отдельный post-MVP backlog. HLD/MVP scope не менялись. Подробности — SCI-001-FINAL-REVIEW.md.
+
+
+## SCI-002 — 31 October 2026
+
+82 unit tests (11 files), 163 SQL assertions (10 files), queue concurrency/recovery, production budget concurrency/billing, actual SCI-001 review rollback integration, SCI-002 rollback demonstration, production HTTP Auth/PKCE/Mailpit/CSRF/reviewer/outsider plus pending metadata confirmation/replay, typecheck, production build and offline demo passed locally. The build retains the existing metadataBase warning. Two ingestion assertions were updated for the intentional new human-confirmation gate; other regressions remain green. No paid LLM calls.
+
+Opt-in network smoke: one approved arXiv ID lookup (1706.03762) and one Crossref DOI lookup (10.1038/s41586-021-03819-2) succeeded; exact hashes/timestamps are in ignored artifacts/metadata/network-smoke.json. It changes only local provider cooldown, not the editorial pool. Deterministic CI has no network dependency.
+
+Migration 011 applied only to isolated local Academy; local data retained. Immutable snapshots and append-only resolutions/events, same-item multiple undated observations, exact retries/stale decisions and unresolved source conflict demonstrated in artifacts/metadata/demonstration.json (all fixture writes rolled back). HLD and installed 009/010 unchanged; no cloud/production configuration changes. SCI-002.md records limitations and minimum missing functionality for the first real dossier/brief/draft pilot; full content production remains unimplemented.
