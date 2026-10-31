@@ -43,11 +43,25 @@ do $$ declare t text; begin
  execute format('alter table academy.%I enable row level security',t);
  execute format('revoke all on academy.%I from public,anon,authenticated',t);
  execute format('grant select on academy.%I to authenticated',t);
- execute format('grant select,insert on academy.%I to service_role',t);
+ execute format('grant select on academy.%I to service_role',t);
  execute format('create policy member_read on academy.%I for select to authenticated using((select academy.is_editor()))',t);
  execute format('create trigger immutable before update or delete on academy.%I for each row execute function academy.external_review_immutable()',t);
  end loop;
 end $$;
+-- Existing service credentials stay trusted administrators, but ordinary worker table writes
+-- must not fabricate a human scientific decision. Checked user RPCs run as their DB owner.
+create function academy.guard_human_scientific_insert() returns trigger language plpgsql set search_path='' as $$ begin
+ if current_user='service_role' then raise exception 'Worker cannot insert human scientific decisions' using errcode='42501'; end if;
+ if tg_table_name='scientific_reviews' then
+ if new.reviewer_id is distinct from auth.uid() then raise exception 'Scientific reviewer identity mismatch' using errcode='42501'; end if;
+ else
+ if new.actor_type is distinct from 'human' or new.actor_id is distinct from auth.uid()::text then raise exception 'Scientific approver identity mismatch' using errcode='42501'; end if;
+ end if;
+ return new;
+end $$;
+create trigger human_scientific_review before insert on academy.scientific_reviews for each row execute function academy.guard_human_scientific_insert();
+create trigger human_scientific_approval before insert or update on academy.editorial_decisions for each row when(new.dossier_id is not null) execute function academy.guard_human_scientific_insert();
+revoke all on function academy.guard_human_scientific_insert() from public,anon,authenticated,service_role;
 -- Scientific content is immutable even while its independent-verification status remains unverified.
 create trigger immutable_claims before update or delete on academy.claims for each row execute function academy.external_review_immutable();
 create trigger immutable_evidence before update or delete on academy.evidence for each row execute function academy.external_review_immutable();
