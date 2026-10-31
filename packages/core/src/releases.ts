@@ -1,5 +1,6 @@
 import { domainPacks, dossierSchema, type Article, type ContentAsset, type DomainPack, type ResearchDossier, type ScientificStory, type Script } from './index';
 import { localizedArticleSchema, type LocalizedArticle } from './localized-article';
+import {dossierVideoPublicationIssues,type DossierVideoReleaseBundle} from './dossier-video';
 
 export interface ArticleApproval {
   language?: 'es' | 'en';
@@ -74,7 +75,8 @@ export function articlePublicationIssues(bundle: ArticleReleaseBundle, packs = d
 }
 
 /** Video failure never participates in the article gate. Publication reference must be persisted server-side. */
-export function videoPublicationIssues(bundle: VideoReleaseBundle, packs = domainPacks): string[] {
+export function videoPublicationIssues(bundle: VideoReleaseBundle|DossierVideoReleaseBundle, packs = domainPacks): string[] {
+  if('sourceKind' in bundle) return dossierVideoPublicationIssues(bundle,packs);
   const { source, script, publishedArticle: p, approval: a } = bundle;
   const issues = contentIssues(source, packs);
   if (!/^[a-f0-9]{64}$/.test(bundle.renderSha256)) issues.push('Final video checksum required');

@@ -45,3 +45,7 @@ PR2–5 слиты. Есть Auth/manual decisions, реальные локал�
 
 
 SCI-003: первичный PDF/текст → located evidence → versioned Research Dossier → независимое human review и отдельный whole-dossier approval → Editorial Brief. Контракт, реальный локальный пилот и оставшаяся human acceptance — [SCI-003.md](SCI-003.md). Cloud/production не менялись; статьи/видео и paid calls не реализуются этим срезом.
+
+## VIDEO-001 — 31 октября 2026
+
+Реализован технический срез scene/asset/voice/consent contracts и bounded 2D FFmpeg fallback с checksum cache. Видео допускает точные одобренные dossier + brief без web-статьи; прежний published article path сохранён. Это не полный видеопилот, paid adapters/Remotion/publisher отсутствуют. Границы, проверки и следующие срезы — [VIDEO-HLD.md](VIDEO-HLD.md).
