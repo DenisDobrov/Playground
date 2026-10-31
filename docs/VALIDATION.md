@@ -143,7 +143,7 @@ Typecheck, production build, offline demo — PASS. 61 unit test и 67 SQL asser
 
 ## SCI-002 — 31 October 2026
 
-82 unit tests (11 files), 162 SQL assertions (10 files), queue concurrency/recovery, production budget concurrency/billing, actual SCI-001 review rollback integration, SCI-002 rollback demonstration, production HTTP Auth/PKCE/Mailpit/CSRF/reviewer/outsider plus pending metadata confirmation/replay, typecheck, production build and offline demo passed locally. The build retains the existing metadataBase warning. Two ingestion assertions were updated for the intentional new human-confirmation gate; other regressions remain green. No paid LLM calls.
+82 unit tests (11 files), 163 SQL assertions (10 files), queue concurrency/recovery, production budget concurrency/billing, actual SCI-001 review rollback integration, SCI-002 rollback demonstration, production HTTP Auth/PKCE/Mailpit/CSRF/reviewer/outsider plus pending metadata confirmation/replay, typecheck, production build and offline demo passed locally. The build retains the existing metadataBase warning. Two ingestion assertions were updated for the intentional new human-confirmation gate; other regressions remain green. No paid LLM calls.
 
 Opt-in network smoke: one approved arXiv ID lookup (1706.03762) and one Crossref DOI lookup (10.1038/s41586-021-03819-2) succeeded; exact hashes/timestamps are in ignored artifacts/metadata/network-smoke.json. It changes only local provider cooldown, not the editorial pool. Deterministic CI has no network dependency.
 

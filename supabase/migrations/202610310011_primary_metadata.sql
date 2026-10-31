@@ -33,7 +33,7 @@ create table academy.pending_resolutions (
 -- Every extracted event is an immutable observation, including pending imports and repeated reported events.
 create table academy.review_event_observations (
  id uuid primary key default gen_random_uuid(), item_id uuid not null references academy.external_review_items,
- ordinal integer not null check(ordinal between 1 and 20), reported jsonb not null,
+ ordinal integer not null check(ordinal>=1), reported jsonb not null,
  legacy_event_id uuid references academy.scientific_events, unique(item_id,ordinal)
 );
 create table academy.canonical_scientific_events (
@@ -265,6 +265,8 @@ begin
       or extraction->>'verification' is distinct from 'unverified' or length(coalesce(extraction->>'title','')) not between 3 and 500
       or jsonb_typeof(extraction->'references') is distinct from 'array' or jsonb_typeof(extraction->'events') is distinct from 'array'
     then raise exception 'Invalid extracted item' using errcode='22023'; end if;
+    -- Bound every new section, including future/pending imports. Legacy extraction is backfilled in full.
+    if jsonb_array_length(extraction->'events')>20 then raise exception 'Too many reported events' using errcode='22023'; end if;
     -- Exact repeated selection is a no-op, including review reopen requests.
     if exists(select 1 from academy.external_review_items where review_id=v_review and item_key=item->>'key') then
       if exists(select 1 from academy.external_review_items i where i.review_id=v_review and i.item_key=item->>'key' and (i.selected_identity is distinct from identity or i.extraction is distinct from item->'extraction'))

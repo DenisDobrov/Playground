@@ -33,6 +33,11 @@ select ok((select snapshot is not null from metadata_ctx),'Worker persists immut
 select is((select payload_hash from academy.metadata_snapshots where id=(select snapshot from metadata_ctx)),encode(extensions.digest(convert_to('synthetic test payload','UTF8'),'sha256'),'hex'),'Hash computed by DB from exact provider payload');
 select throws_ok($$update academy.metadata_snapshots set raw_payload='changed' where id=(select snapshot from metadata_ctx)$$,'23000',null,'Snapshot cannot be changed even by admin command');
 select throws_ok($$delete from academy.metadata_snapshots where id=(select snapshot from metadata_ctx)$$,'23000',null,'Snapshot cannot be deleted through ordinary commands');
+-- SCI-001 bounded active sections, but legacy pending sections could retain more observations.
+insert into academy.external_reviews(id,content_hash,document_hash,markdown,source_type,parser_version,imported_by) values('11000000-0000-4000-8000-000000000010',repeat('c',64),repeat('c',64),'Legacy pending observation fixture','external_review','external-review/1','11000000-0000-4000-8000-000000000001');
+insert into academy.external_review_items(id,review_id,item_key,extraction,disposition,imported_by) select '11000000-0000-4000-8000-000000000011','11000000-0000-4000-8000-000000000010','section-1',jsonb_build_object('events',jsonb_agg(jsonb_build_object('kind','experimental_result'))),'needs_identification','11000000-0000-4000-8000-000000000001' from generate_series(1,21);
+select academy.capture_review_observations('11000000-0000-4000-8000-000000000011');
+select is((select count(*) from academy.review_event_observations where item_id='11000000-0000-4000-8000-000000000011'),21::bigint,'Legacy pending observations backfill completely without a destructive new upper bound');
 set local role authenticated;
 select set_config('request.jwt.claim.sub','11000000-0000-4000-8000-000000000003',true);
 select is((select count(*) from academy.metadata_snapshots where identity='arxiv:9911.00001'),0::bigint,'Nonmember cannot read primary snapshots');

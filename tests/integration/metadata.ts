@@ -51,6 +51,8 @@ try {
  await reject('select academy.confirm_identity($1,$2,$3)',[prop,'Different reason for same command.',linkCommand],'22023');
  const pendingMarkdown='# 1. Fundamental physics: Source not identified\n## What changed\nSynthetic pending research candidate.\nEvent: initial_preprint\n';
  const pendingRequest=prepareReviewImport(pendingMarkdown,'external_review',actor,[{key:'section-1',identity:null}],key);
+ const oversized=prepareReviewImport(pendingMarkdown+'Event: initial_preprint\n'.repeat(21),'external_review',actor,[{key:'section-1',identity:null}],key);
+ await reject('select academy.import_external_review($1,$2,$3,$4,$5)',[oversized.p_markdown,oversized.p_source_type,oversized.p_parser_version,oversized.p_items,oversized.p_attestation],'22023');
  const pendingReview=await importReview(pendingRequest);const pending=(await one('select * from academy.external_review_items where review_id=$1',[pendingReview]));
  const resolutionCommand=randomUUID();
  const resolve=()=>one('select academy.resolve_pending($1,$2,0,$3,$4) as id',[pending.id,a,'Primary arXiv record reviewed against original report.',resolutionCommand]);
