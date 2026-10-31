@@ -5,6 +5,7 @@ import type { Script } from '@science/core';
 export * from './scene-plan';
 export * from './hybrid';
 export * from './pan-fallback';
+export * from './content-scenes';
 
 function timestamp(seconds: number): string {
   const ms = Math.round(seconds * 1000);

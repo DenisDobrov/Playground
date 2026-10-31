@@ -11,6 +11,7 @@ import {parsePrimaryMetadata,metadataHash} from '@science/sources';
 import {syntheticPdf} from '../fixtures/pdf';
 import {syntheticResearchDraft,researchText} from '../fixtures/research';
 import {ingestPrimaryPdf} from '../../apps/worker/src/primary-document';
+import {contentArticleFixture} from '../fixtures/content';
 
 const origin = 'http://localhost:3000';
 const api = 'http://127.0.0.1:56321';
@@ -294,6 +295,35 @@ try {
   const briefForm=formFrom(authorPage,'command','brief');briefForm.set('preliminary','false');assert.match((await editor.post(briefForm,origin,researchPath)).headers.get('location')||'',/notice=blocked/,'Unreviewed dossier cannot produce an approved brief');
   briefForm.set('preliminary','true');assert.match((await editor.post(briefForm,origin,researchPath)).headers.get('location')||'',/notice=saved/);
   const displayed=await (await reviewer.request(researchPath)).text();assert.match(displayed,/PRELIMINARY/);assert.ok(!displayed.includes(reviewSigningKey));
+  // SCI-004: genuine HTTP review forms on synthetic content; no model/provider is called.
+  const syntheticClaims=(await db.query('select id,local_key from academy.claims where dossier_id=$1',[dossierId])).rows;
+  for(const claim of syntheticClaims) {
+    const page=await (await reviewer.request(researchPath)).text(),form=formFrom(page,'claim',claim.id);
+    form.set('decision',claim.local_key==='supported'?'accept':'reject');form.set('reason','Synthetic HTTP reviewer checks toy-model scope only.');form.set('effort','0');
+    assert.match((await reviewer.post(form,origin,researchPath)).headers.get('location')||'',/notice=saved/);
+  }
+  const approve=formFrom(await (await reviewer.request(researchPath)).text(),'command','approve');approve.set('reason','Synthetic HTTP whole dossier and framing acceptance only.');
+  assert.match((await reviewer.post(approve,origin,researchPath)).headers.get('location')||'',/notice=saved/);
+  const finalBrief=formFrom(await (await editor.request(researchPath)).text(),'command','brief');finalBrief.set('preliminary','false');
+  assert.match((await editor.post(finalBrief,origin,researchPath)).headers.get('location')||'',/notice=saved/);
+  const briefId=(await db.query('select id from academy.editorial_briefs where dossier_id=$1 and not preliminary',[dossierId])).rows[0].id;
+  const contentAdmin=createClient(api,status.SERVICE_ROLE_KEY,{db:{schema:'academy'},auth:{persistSession:false,autoRefreshToken:false}});
+  const call=async(name:string,args:Record<string,unknown>)=>{const r=await contentAdmin.rpc(name,args);assert.equal(r.error,null,`${name} must succeed`);return r.data;};
+  const contentInput=await call('content_generation_input',{p_brief:briefId});
+  const op=await call('budget_reserve',{p_key:'http-content:'+randomUUID(),p_month:budgetMonth,p_category:'content',p_estimate:0,p_story:reviewStory,p_video:null,p_tool:'content-article_es',p_tool_version:'1',p_price_version:'synthetic-zero/1',p_input_hash:'a'.repeat(64)});
+  const contentToken=await call('budget_start',{p_id:op.id});
+  const receipt=await call('record_content_receipt',{p_operation:op.id,p_brief:briefId,p_input_hash:contentInput.inputHash,p_kind:'article_es',p_response:{text:JSON.stringify(contentArticleFixture(contentInput)),finishReason:'STOP',receipt:'synthetic-http-provider',usage:{input_tokens:0,output_tokens:0}},p_audit:{requestHash:'a'.repeat(64),priceVersion:'synthetic-zero/1',model:'offline-fixture',promptVersion:'synthetic-http/1'}});
+  await call('budget_settle',{p_id:op.id,p_token:contentToken,p_actual:0,p_usage:{},p_reference:'content-receipt:'+receipt});
+  const contentDraft=await call('save_content_draft',{p_receipt:receipt}),contentPath='/editorial/content?draft='+contentDraft;
+  const contentPage=await (await reviewer.request(contentPath)).text();assert.match(contentPage,/Synthetic article fixture/);assert.match(contentPage,/Output SHA-256/);
+  const contentForm=formFrom(contentPage,'draft',contentDraft);contentForm.set('decision','approve');contentForm.set('reason','Synthetic human reviews language, mapping, quantities and caveats.');
+  for(const key of ['claimAlignment','languageQuality','scientificCaveats','quantitativeValues'])contentForm.set(key,'on');
+  assert.ok((await reviewer.post(contentForm,'https://attacker.example',contentPath)).status>=400);
+  assert.match((await reviewer.post(contentForm,origin,contentPath)).headers.get('location')||'',/notice=saved/);
+  assert.match((await reviewer.post(contentForm,origin,contentPath)).headers.get('location')||'',/notice=saved/,'Content human approval replay is idempotent');
+  contentForm.set('commandId',randomUUID());contentForm.set('hash','f'.repeat(64));
+  assert.match((await reviewer.post(contentForm,origin,contentPath)).headers.get('location')||'',/notice=stale/,'Client cannot approve different bytes');
+  assert.match((await outsider.request(contentPath)).headers.get('location')||'',/notice=access/);
   assert.match((await outsider.request('/editorial/stories')).headers.get('location') || '', /notice=access/);
   assert.match((await outsider.request('/editorial/budget?month=2095-01')).headers.get('location') || '', /notice=access/);
   assert.match((await outsider.request('/editorial')).headers.get('location') || '', /notice=access/);
@@ -310,6 +340,12 @@ try {
     await db.query('begin');await db.query('set local session_replication_role=replica');
     if(researchDocuments.length) {
       const dossierIds=(await db.query('select id from academy.dossiers where document_id=any($1::uuid[])',[researchDocuments])).rows.map(d=>d.id);
+      const contentArtifacts=(await db.query('select id,article_id,script_id from academy.content_drafts where dossier_id=any($1::uuid[])',[dossierIds])).rows;
+      await db.query('delete from academy.content_reviews where draft_id=any($1::uuid[])',[contentArtifacts.map(d=>d.id)]);
+      await db.query('delete from academy.content_drafts where dossier_id=any($1::uuid[])',[dossierIds]);
+      await db.query('delete from academy.content_receipts where brief_id in (select id from academy.editorial_briefs where dossier_id=any($1::uuid[]))',[dossierIds]);
+      await db.query('delete from academy.articles where id=any($1::uuid[])',[contentArtifacts.map(d=>d.article_id).filter(Boolean)]);
+      await db.query('delete from academy.scripts where id=any($1::uuid[])',[contentArtifacts.map(d=>d.script_id).filter(Boolean)]);
       await db.query('delete from academy.editorial_briefs where dossier_id=any($1::uuid[])',[dossierIds]);await db.query('delete from academy.scientific_reviews where dossier_id=any($1::uuid[])',[dossierIds]);await db.query('delete from academy.editorial_decisions where dossier_id=any($1::uuid[])',[dossierIds]);
       await db.query('delete from academy.claim_evidence where claim_id in (select id from academy.claims where dossier_id=any($1::uuid[]))',[dossierIds]);
       for(const table of ['claims','evidence']) await db.query(`delete from academy.${table} where dossier_id=any($1::uuid[])`,[dossierIds]);

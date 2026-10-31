@@ -8,6 +8,7 @@
     "@science/sources": "*",
     "@science/storage": "*",
     "@science/video": "*",
-    "pdfjs-dist": "6.4.299"
+    "pdfjs-dist": "6.4.299",
+    "@science/llm": "*"
   }
 }

@@ -51,7 +51,10 @@
     "test:research:integration": "tsx tests/integration/research.ts",
     "research:local:prepare": "tsx --env-file=.env.local-worker apps/worker/src/research-local.ts",
     "research:local:export": "tsx --env-file=.env.local-worker apps/worker/src/research-export.ts",
-    "video:hybrid:preview": "tsx apps/worker/src/hybrid-preview.ts"
+    "video:hybrid:preview": "tsx apps/worker/src/hybrid-preview.ts",
+    "content:local": "tsx --env-file-if-exists=.env.local --env-file=.env.local-worker apps/worker/src/content-local.ts",
+    "test:content:integration": "tsx tests/integration/content.ts",
+    "content:local:status": "tsx --env-file-if-exists=.env.local --env-file=.env.local-worker apps/worker/src/content-status.ts"
   },
   "devDependencies": {
     "@types/node": "26.6.5",

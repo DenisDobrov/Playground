@@ -30,3 +30,4 @@ export function assertBudget(usedUsd: number, reservedUsd: number, estimatedUsd:
 }
 export * from './production-budget';
 export * from './production-plan';
+export * from './content-generation';
