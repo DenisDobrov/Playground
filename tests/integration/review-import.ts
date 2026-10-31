@@ -1,0 +1,40 @@
+/** Actual user-provided weekly review, authenticated SQL command, local rollback-only demonstration. */
+import pg from 'pg';
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {randomUUID} from 'node:crypto';
+import assert from 'node:assert/strict';
+import {parseExternalReview,prepareReviewImport} from '@science/sources';
+const db=new pg.Client({connectionString:'postgresql://postgres:postgres@127.0.0.1:56322/postgres'});
+const markdown=await readFile('tests/fixtures/weekly-review-2026-10-23.md','utf8');
+const parsed=parseExternalReview(markdown);
+try {
+  await db.connect();await db.query('begin');
+  const signingKey=(await db.query("select encode(secret,'hex') as value from academy.review_import_signing_key where id")).rows[0].value;
+  const user=randomUUID();
+  await db.query('insert into auth.users(id,email) values($1,$2)',[user,`${user}@review.example.test`]);
+  await db.query("insert into academy.editor_members(user_id,role) values($1,'editor')",[user]);
+  await db.query('set local role authenticated');await db.query("select set_config('request.jwt.claim.sub',$1,true)",[user]);
+  const old=(await db.query("select academy.create_candidate('arxiv:2504.16746','Existing old arXiv work for rollback demo','physics') as id")).rows[0].id;
+  const version=(await db.query('select editorial_version from academy.stories where id=$1',[old])).rows[0].editorial_version;
+  await db.query("select academy.record_selection($1,'hold','Rollback demonstration: await journal event',$2,$3)",[old,version,randomUUID()]);
+  const beforeClaims=(await db.query('select count(*) from academy.claims')).rows[0].count;
+  const choices=parsed.candidates.map(c=>({key:c.key,identity:c.key==='section-2' ? 'arxiv:2504.16746' : c.references.find(r=>r.role==='primary_candidate')?.canonicalId || null,reopen:c.key==='section-2'}));
+  const request=prepareReviewImport(markdown,'chatgpt',user,choices,signingKey);
+  const confirm=()=>db.query('select academy.import_external_review($1,$2,$3,$4,$5) as id',[request.p_markdown,request.p_source_type,request.p_parser_version,request.p_items,request.p_attestation]);
+  const id=(await confirm()).rows[0].id;
+  assert.equal((await confirm()).rows[0].id,id);
+  const original=(await db.query('select markdown,content_hash from academy.external_reviews where id=$1',[id])).rows[0];
+  assert.equal(original.markdown,markdown);assert.equal(original.content_hash,parsed.hash);
+  const rows=(await db.query('select item_key,story_id,disposition,verification from academy.external_review_items where review_id=$1',[id])).rows;
+  assert.equal(rows.length,10);assert.equal(rows.filter(r=>r.disposition==='future_scope').length,6);
+  assert.equal(rows.find(r=>r.item_key==='section-2').story_id,old);
+  assert.ok(rows.every(r=>r.verification==='unverified'));
+  assert.equal((await db.query('select count(*) from academy.claims')).rows[0].count,beforeClaims);
+  assert.equal((await db.query('select editorial_version,status from academy.stories where id=$1',[old])).rows[0].editorial_version,version+2);
+  const events=(await db.query('select e.kind,e.reported_date,e.verification from academy.scientific_events e join academy.external_review_items i on i.id=e.review_item_id where i.review_id=$1 and e.story_id=$2',[id,old])).rows;
+  assert.ok(events.some(e=>e.kind==='initial_preprint' && e.reported_date.includes('2025')));
+  assert.ok(events.some(e=>e.kind==='journal_publication' && e.reported_date.includes('2026')));
+  await mkdir('artifacts/review-import',{recursive:true});
+  await writeFile('artifacts/review-import/demonstration.json',JSON.stringify({fixture:'Actual user-provided review; scientific assertions remain unverified',hash:parsed.hash,candidates:rows.length,linked:rows.filter(r=>r.story_id).length,futureScope:6,events,repeat:'same review and item identities',databaseWrites:'rolled back',paidCalls:0},null,2));
+  console.log('PASS: actual 10-story review, original/hash retained, selected import/reimport, 6 future-scope items, old arXiv/journal event, no verified claims; database rolled back');
+} finally {await db.query('rollback').catch(()=>{});await db.end();}

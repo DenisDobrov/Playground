@@ -53,3 +53,7 @@ npm run web:local
 `npm run db:test` — RLS, полномочия RPC, dedupe, authenticated actor, retry и stale-tab conflict. `npm run db:test:integration` — конкурентные lease sessions. После `npm run build`: `npm run test:editorial:web` запускает собственный Next на свободном localhost:3000 и проверяет реальный magic-link flow через локальную почту, refresh/logout, Server Actions, CSRF, persistence и права. При занятом порте тест останавливается, не переиспользует неизвестный server. Синтетические test users/data удаляются; внешняя почта и облако не используются. Этот сценарий добавлен в Database CI.
 
 Основание: [Supabase SSR](https://supabase.com/docs/guides/auth/server-side/creating-a-client), [passwordless email](https://supabase.com/docs/guides/auth/auth-email-passwordless); bundled Next 16.4.2 guides по cookies, Proxy и Server Actions. Проверено 22.10.2026.
+
+## SCI-001 parser attestation (010)
+
+Import confirmation additionally requires server-only `EDITORIAL_REVIEW_SIGNING_KEY`, a dedicated 32-byte key encoded as 64 hex characters matching this DB’s private `academy.review_import_signing_key`. It is separate from Auth secrets and service-role. Local setup after migration 010: `npm run web:local:review-key`, then restart web; existing local settings are preserved and the key is not printed. `web:local:env` includes it on fresh setup. No live key provisioning or cloud changes are automatic. See SCI-001-FINAL-REVIEW.md.

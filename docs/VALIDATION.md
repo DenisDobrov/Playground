@@ -121,3 +121,21 @@ Typecheck, production build, offline demo — PASS. 61 unit test и 67 SQL asser
 Локальный план на текущий UTC месяц: $200, категории 30/50/50/70, story/month $10, video/month $25. Это конфигурация пределов, не расход. На настоящем локальном кандидате metadata review создал сохранённый unverified brief; повтор удержан под прежним operation ID. Четыре synthetic metering paths завершились с нулевым provider charge. Unpriced production plan сохранил null вместо выдуманных цен. Recover вернул released=0/uncertain=0 после smoke. Платных вызовов, озвучки и нового MP4 не было.
 
 Тарифы/провайдеры, metered Gemini/TTS/Remotion adapters, paid research/verifier benchmark и publication не подключены. Monthly per-story/video caps не являются lifetime caps. Инварианты и следующие инструменты — PRODUCTION-BUDGET.md; актуальный план производства — SPRINTS.md.
+
+## SCI-001 — External Research Review Import, 30 октября 2026
+
+Ветка codex/sci-001-review-import от master после PR6. HLD и предыдущие компоненты сохранены. 009 применена только локально, cloud/legacy/Auth/SMTP не менялись. Реальный weekly review пользователя добавлен как unverified fixture; его network sources в CI не загружаются.
+
+71 unit test — PASS; 115 SQL assertions — PASS. Actual-review integration — PASS: 10 секций, 4 linked/6 future-scope, original/hash, repeated import, old arXiv + journal event, отсутствие verified claims; всё откатилось. HTTP integration — PASS: Markdown paste и file upload, preview без записи, selected confirm, reimport, CRLF/LF document identity, оригинал в архиве, future/missing-primary, roles и CSRF; существующие inbox/catalog/budget/Auth сценарии сохранены. Queue и budget concurrent integrations — PASS. Typecheck, production build и offline demo — PASS; 0 paid calls, publication blocked.
+
+При native textarea submission переносы могут нормализоваться браузером/HTTP до получения сервером; preview→confirm сохраняет полученный оригинал через JSON. Первый exact content_hash сохраняется, отдельный normalized document_hash не даёт создать второй обзор при LF/CRLF повторе. Нормализация DOI/arXiv не устанавливает peer review или verified evidence. Co-occurrence не создаёт alias; версии посторонней работы не присваиваются выбранной identity.
+
+Известные границы: standard English Markdown parser, до 50 секций/256 KiB, нет automatic primary API enrichment или semantic paper merging; immutable pending items требуют будущей lineage-preserving link command. Облачная активация/migrations 005–009 отдельно; git merge не включает live Vercel env. Подробнее — SCI-001.md.
+
+## SCI-001 final technical review / PR7 hardening
+
+Два подтверждённых P2: work/type collision у недатированных событий и editor direct-RPC forgery immutable extraction. 009 сохранена без изменений; 010 добавляет private parser attestation и item-scoped undated event keys. Обычные Auth/editor/reviewer правила и release gates сохранены. Legacy inconsistent extraction на повторе удерживается, а не молча переиспользуется.
+
+73 unit tests — PASS; 127 SQL assertions — PASS. Actual-review signed import/reimport — PASS с rollback; HTTP Auth/Server Actions — PASS, включая подставленный клиентом extraction (игнорируется), paste/upload и повтор. Queue и budget integration — PASS; Typecheck, production build и offline demo — PASS. Платных вызовов нет. Дополнительный local PostgREST smoke подтвердил подписанный вызов с настоящей editor-сессией. Native form test harness исправлен: unchecked checkbox не отправляется, как в браузере.
+
+Приватный ключ сгенерирован/настроен только для локальной Academy DB и ignored .env.local-web без вывода значения и без изменения allowlist. Cloud migrations и live production settings не выполнялись. SCI-002 только спланирован; FUT-ARXIV-001 — отдельный post-MVP backlog. HLD/MVP scope не менялись. Подробности — SCI-001-FINAL-REVIEW.md.

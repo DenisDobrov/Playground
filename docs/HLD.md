@@ -153,3 +153,7 @@ MVP готов, когда реальный DOI/arXiv проходит путь 
 ## Приоритет производства после PR5 — 22.10.2026
 
 Следующий бюджетный срез ориентирован на news_analysis/content/voice/video. Ближайшие реализации — анализ кандидатов и черновики, TTS samples, затем технический видеопилот на тестовом тексте. Paid deep research и verifier benchmark отложены; научные release gates реальных публикаций остаются обязательными. Ledger и правила сверки — PRODUCTION-BUDGET.md; актуальный порядок — SPRINTS.md.
+
+## SCI-001 — внешние обзоры и научные события (30.10.2026)
+
+Внешний обзор — вторичный source document: immutable original и selected sections сохраняются отдельно от scientific evidence. Deterministic preview не пишет editorial records; editor подтверждает выбор и work identity. Future-scope/missing-primary sections остаются в архиве. Reported events различают препринт, версию, journal publication, эксперимент/репликацию, correction/retraction и announcement; explicit review request сохраняет историю, не меняя опубликованные revisions. Проверенные aliases переиспользуются, но совместное упоминание DOI/arXiv не доказывает их тождество. Контракт, локальная migration 009 и границы — `SCI-001.md`.

@@ -54,3 +54,7 @@ npm run gold:export:local
 ## Очередь и редакционная память
 
 Сохранённые решения уходят из новых; все сюжеты доступны в `/editorial/stories` с поиском и фильтрами. Migration 007 и цикл Motivo → редакционная память → эталон → повторное рассмотрение описаны в `EDITORIAL-FEEDBACK.md`. Автоматический research/reanalysis ещё не подключён.
+
+## Внешние обзоры — SCI-001
+
+Помимо feed intake, editor может импортировать Markdown обзор через `/editorial/imports` с предварительным выбором секций. Это локальный deterministic parsing без fetch/LLM. Первичные metadata и вторичный текст обзора хранятся раздельно; повтор безопасен. Original archive, future-scope и reported events описаны в `SCI-001.md`. Для live DB нужна migration 009; merge кода не устанавливает её в cloud.

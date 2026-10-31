@@ -85,3 +85,19 @@ PR2 использует существующий To-do-Db-project в схеме
 Shorts, weekly digest, Telegram/выбранные соцсети, historian citation watch, семантическая дедупликация/pgvector, улучшенный graph UI, retention analytics с ограничениями честности, дополнительные DomainPack. Медицина только с профильной политикой и экспертом.
 
 Обновление после merge PR5: PR6 добавляет production budget ledger и локальные инструменты news brief/планирования. Приоритет пользователя — анализ новостей, контент, голос и видео; paid research/verifier benchmark отложены. Контракт и проверки — PRODUCTION-BUDGET.md, порядок — SPRINTS.md.
+
+## SCI-001 — External Research Review Import
+
+Реализован deterministic Markdown paste/upload → read-only preview → selected authenticated import с оригиналом, provenance, identity dedupe, future-scope archive и reported scientific events. Контракт/DoD — `SCI-001.md`. Следующий предлагаемый срез SCI-002 — primary metadata enrichment и lineage-preserving разрешение pending identity, затем content brief/voice/video; paid research не запускается.
+
+## SCI-002 — Primary Source Metadata Enrichment (план, не реализовано)
+
+arXiv metadata verification, Crossref DOI lookup, reviewed DOI/arXiv alias linking и append-only pending identity resolution с immutable metadata snapshots. Reported claims/events и fetched metadata различаются; 0 paid LLM calls. Порядок, reuse и acceptance criteria — SCI-002-PLAN.md. HLD/MVP не расширяются этим планом.
+
+## FUT-ARXIV-001 — Original manuscript preparation and human-controlled submission (после MVP)
+
+Отдельная будущая возможность для подготовки собственных научных рукописей: исходный исследовательский вопрос, оригинальные данные/методы/анализ, проверяемые references, версии текста и экспорт manuscript/figures/bibliography. Это не пересказ новостей и не ingestion уже опубликованных arXiv papers.
+
+Человек подтверждает авторство/соавторов, научный вклад, методы, данные, права и финальную версию; применимые disclosure/submission требования проверяются перед будущей реализацией. Платформа может готовить пакет и помогать с checklist, но подача в arXiv остаётся явным действием ответственного человека в его аккаунте. Никакой фоновой подачи, автоматического authorship или выдачи импортированного чужого исследования за оригинальную работу. Сохранять lineage original research → manuscript revisions → human approval → submission record; approval новостной статьи не заменяет approval рукописи.
+
+Статус: backlog only, отдельный discovery/architecture review после MVP. В SCI-001/SCI-002 не реализуется, текущий HLD и MVP scope не меняет.
