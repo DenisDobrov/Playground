@@ -106,3 +106,7 @@ arXiv metadata verification, Crossref DOI lookup, reviewed DOI/arXiv alias linki
 ## SCI-003 — Evidence dossier and Editorial Brief
 
 Локальная реализация и контракты — SCI-003.md; human acceptance реального paper pending до сохранённой проверки пользователя. Следующий минимальный срез: exact reviewed dossier/brief → immutable ES/EN article drafts + отдельный Spanish scene-script draft с claim mapping, caveats и metered adapter после pricing/approval. Не повторять extraction и не наследовать publication approval. FUT-ARXIV-001 остаётся отдельной будущей возможностью.
+
+## VIDEO-001 — 31 октября 2026
+
+Реализован технический срез scene/asset/voice/consent contracts и bounded 2D FFmpeg fallback с checksum cache. Видео допускает точные одобренные dossier + brief без web-статьи; прежний published article path сохранён. Это не полный видеопилот, paid adapters/Remotion/publisher отсутствуют. Границы, проверки и следующие срезы — [VIDEO-HLD.md](VIDEO-HLD.md).

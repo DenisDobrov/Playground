@@ -17,6 +17,7 @@ function canonical(value: unknown): string {
   return JSON.stringify(value);
 }
 const hash = (value: unknown) => createHash('sha256').update(canonical(value)).digest('hex');
+export const videoContentHash = hash;
 const isHash = (value: string) => /^[a-f0-9]{64}$/.test(value);
 
 /** Deterministic job identities, not a renderer or a proof that cached files still exist. */

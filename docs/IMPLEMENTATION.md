@@ -93,3 +93,7 @@ OAuth YouTube и Supabase Google login — разные решения: поль
 ## SCI-001 — 30 октября 2026
 
 Добавлены `/editorial/imports`, архив оригиналов и связь из каталога; pure parser переиспользует canonical source IDs, confirmation — существующие editor RPC. Миграция 009 локальная. Original/hash/sections и reported events никогда не становятся verified evidence автоматически. Реальный weekly fixture проверяется rollback-only integration; production cloud activation по-прежнему отдельная задача. Детали — `SCI-001.md`.
+
+## VIDEO-001 — 31 октября 2026
+
+Реализован технический срез scene/asset/voice/consent contracts и bounded 2D FFmpeg fallback с checksum cache. Видео допускает точные одобренные dossier + brief без web-статьи; прежний published article path сохранён. Это не полный видеопилот, paid adapters/Remotion/publisher отсутствуют. Границы, проверки и следующие срезы — [VIDEO-HLD.md](VIDEO-HLD.md).

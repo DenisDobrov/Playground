@@ -50,7 +50,8 @@
     "test:metadata:network": "tsx --env-file=.env.local-worker tests/integration/metadata-network.ts",
     "test:research:integration": "tsx tests/integration/research.ts",
     "research:local:prepare": "tsx --env-file=.env.local-worker apps/worker/src/research-local.ts",
-    "research:local:export": "tsx --env-file=.env.local-worker apps/worker/src/research-export.ts"
+    "research:local:export": "tsx --env-file=.env.local-worker apps/worker/src/research-export.ts",
+    "video:hybrid:preview": "tsx apps/worker/src/hybrid-preview.ts"
   },
   "devDependencies": {
     "@types/node": "26.6.5",

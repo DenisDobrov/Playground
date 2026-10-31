@@ -3,6 +3,8 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import type { Script } from '@science/core';
 export * from './scene-plan';
+export * from './hybrid';
+export * from './pan-fallback';
 
 function timestamp(seconds: number): string {
   const ms = Math.round(seconds * 1000);
