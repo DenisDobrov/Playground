@@ -1,0 +1,15 @@
+{
+  "identity": "arxiv:2610.30098",
+  "domain": "physics",
+  "version": "v1",
+  "sourceUrl": "https://arxiv.org/pdf/2610.30098",
+  "pdf": "artifacts/research-pilot/2610.30098v1.pdf",
+  "draft": "examples/research/photonic-draft.json",
+  "rights": {
+    "accessBasis": "Operator supplied the explicitly selected public arXiv PDF for private scientific review.",
+    "reuseLicense": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "attribution": "Matthew Kozma and Stephen Hughes, arXiv:2610.30098v1; exact short quotations; no original figures republished.",
+    "mediaReuse": "not_cleared; review every future figure individually"
+  }
+}

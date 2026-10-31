@@ -2,5 +2,12 @@
   "name": "@science/worker",
   "private": true,
   "type": "module",
-  "dependencies": { "@science/core": "*", "@science/pipeline": "*", "@science/storage": "*", "@science/video": "*", "@science/sources": "*" }
+  "dependencies": {
+    "@science/core": "*",
+    "@science/pipeline": "*",
+    "@science/sources": "*",
+    "@science/storage": "*",
+    "@science/video": "*",
+    "pdfjs-dist": "6.4.299"
+  }
 }

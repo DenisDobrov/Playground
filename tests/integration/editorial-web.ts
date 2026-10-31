@@ -8,6 +8,9 @@ import { createServerClient } from '@supabase/ssr';
 import pg from 'pg';
 import {readFile} from 'node:fs/promises';
 import {parsePrimaryMetadata,metadataHash} from '@science/sources';
+import {syntheticPdf} from '../fixtures/pdf';
+import {syntheticResearchDraft,researchText} from '../fixtures/research';
+import {ingestPrimaryPdf} from '../../apps/worker/src/primary-document';
 
 const origin = 'http://localhost:3000';
 const api = 'http://127.0.0.1:56321';
@@ -27,6 +30,7 @@ let reviewStory:string|undefined;
 let reviewOwned=false;
 let metadataSnapshot:string|undefined;
 let metadataJob:string|undefined;
+const researchDocuments:string[]=[];const researchObjects:string[]=[];let researchPdfJob:string|undefined;
 const budgetMonth='2095-01-01';
 let budgetFixture=false;
 const canonical = `doi:10.9999/academy-e2e-${randomUUID()}`;
@@ -265,6 +269,31 @@ try {
   const fetchForm=formFrom(metadataPage,'command','fetch');fetchForm.set('identity',reviewArxiv);
   assert.match((await editor.post(fetchForm,origin,metadataPath)).headers.get('location')||'',/notice=queued/);
   metadataJob=(await db.query("select id from academy.production_jobs where stage='metadata_enrichment' and payload->>'identifier'=$1",[reviewArxiv])).rows[0].id;
+  // SCI-003: real PDF upload → Storage → bounded worker → dossier → independent synthetic reviewer.
+  const researchPage=await (await editor.request('/editorial/research')).text();
+  const pdfForm=formFrom(researchPage,'command','document');pdfForm.set('snapshot',metadataSnapshot!);pdfForm.set('story',reviewStory!);pdfForm.set('version','v3');pdfForm.set('url','https://arxiv.org/abs/'+reviewArxiv.slice(6));pdfForm.set('accessBasis','Synthetic fixture supplied only for local HTTP regression.');pdfForm.set('license','unknown');pdfForm.set('attribution','Synthetic test PDF');
+  pdfForm.set('file',new File([new Uint8Array(syntheticPdf(researchText)).buffer],'synthetic.pdf',{type:'application/pdf'}));
+  assert.ok((await editor.post(pdfForm,'https://attacker.example','/editorial/research')).status>=400);
+  assert.match((await editor.post(pdfForm,origin,'/editorial/research')).headers.get('location')||'',/notice=queued/);
+  const pdfJob=(await db.query("select * from academy.production_jobs where stage='primary_document' and payload->>'actor'=$1 order by created_at desc limit 1",[userIds[0]])).rows[0];assert.ok(pdfJob);researchPdfJob=pdfJob.id;researchObjects.push(pdfJob.payload.object);
+  const lease=randomUUID();await db.query("update academy.production_jobs set status='running',lease_token=$2,lease_expires_at=now()+interval '10 minutes',attempts=1 where id=$1",[pdfJob.id,lease]);
+  const oldApi=process.env.SUPABASE_URL,oldService=process.env.SUPABASE_SERVICE_ROLE_KEY;process.env.SUPABASE_URL=api;process.env.SUPABASE_SERVICE_ROLE_KEY=status.SERVICE_ROLE_KEY;
+  let extracted:Awaited<ReturnType<typeof ingestPrimaryPdf>>;
+  try {extracted=await ingestPrimaryPdf({...pdfJob,lease_token:lease});} finally {if(oldApi===undefined) delete process.env.SUPABASE_URL;else process.env.SUPABASE_URL=oldApi;if(oldService===undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY;else process.env.SUPABASE_SERVICE_ROLE_KEY=oldService;}
+  researchDocuments.push(extracted.documentId);assert.equal(extracted.pages,1);
+  const documentPage=await (await editor.request('/editorial/research?document='+extracted.documentId)).text();assert.match(documentPage,/PDF página/);
+  const draftForm=formFrom(documentPage,'command','draft');draftForm.set('draft',JSON.stringify(syntheticResearchDraft()));
+  const savedDraft=await editor.post(draftForm,origin,'/editorial/research');assert.match(savedDraft.headers.get('location')||'',/notice=saved/);
+  const dossierId=new URL(savedDraft.headers.get('location')!,origin).searchParams.get('dossier')!;
+  const researchPath='/editorial/research?dossier='+dossierId;
+  const authorPage=await (await editor.request(researchPath)).text();assert.match(authorPage,/Otro miembro debe revisar/);
+  const reviewPage=await (await reviewer.request(researchPath)).text();const reviewForm=formFrom(reviewPage,'command','review');reviewForm.set('decision','reject');reviewForm.set('reason','Synthetic human role rejects a test claim after reading its exact source.');reviewForm.set('effort','5');
+  assert.match((await reviewer.post(reviewForm,origin,researchPath)).headers.get('location')||'',/notice=saved/,'Reviewer may write only the scoped scientific review');
+  assert.match((await reviewer.post(reviewForm,origin,researchPath)).headers.get('location')||'',/notice=saved/,'Scientific review replay is exact and idempotent');
+  assert.ok((await outsider.post(reviewForm,origin,researchPath)).status>=300,'Outsider cannot submit a review');
+  const briefForm=formFrom(authorPage,'command','brief');briefForm.set('preliminary','false');assert.match((await editor.post(briefForm,origin,researchPath)).headers.get('location')||'',/notice=blocked/,'Unreviewed dossier cannot produce an approved brief');
+  briefForm.set('preliminary','true');assert.match((await editor.post(briefForm,origin,researchPath)).headers.get('location')||'',/notice=saved/);
+  const displayed=await (await reviewer.request(researchPath)).text();assert.match(displayed,/PRELIMINARY/);assert.ok(!displayed.includes(reviewSigningKey));
   assert.match((await outsider.request('/editorial/stories')).headers.get('location') || '', /notice=access/);
   assert.match((await outsider.request('/editorial/budget?month=2095-01')).headers.get('location') || '', /notice=access/);
   assert.match((await outsider.request('/editorial')).headers.get('location') || '', /notice=access/);
@@ -273,12 +302,20 @@ try {
   const logout = formFrom(afterReload, 'logout');
   assert.equal((await editor.post(logout)).headers.get('location'), '/login');
   assert.equal((await editor.request('/editorial')).headers.get('location'), '/login');
-  console.log('PASS: Auth/PKCE, inbox/catalog/budget, Markdown paste/upload preview without writes, selected confirm/reimport, source provenance, metadata preview/pending confirmation/replay, scope/manual flags, CSRF and roles');
+  console.log('PASS: Auth/PKCE, inbox/catalog/budget, Markdown paste/upload preview without writes, selected confirm/reimport, source provenance, metadata preview/pending confirmation/replay, scope/manual flags, PDF/Storage/dossier/scientific review and brief gate, CSRF and roles');
 } finally {
   if (web && web.exitCode === null) web.kill();
   if (userIds.length) {
     // Local fixture cleanup only: privileged transaction bypasses immutability triggers, never production.
     await db.query('begin');await db.query('set local session_replication_role=replica');
+    if(researchDocuments.length) {
+      const dossierIds=(await db.query('select id from academy.dossiers where document_id=any($1::uuid[])',[researchDocuments])).rows.map(d=>d.id);
+      await db.query('delete from academy.editorial_briefs where dossier_id=any($1::uuid[])',[dossierIds]);await db.query('delete from academy.scientific_reviews where dossier_id=any($1::uuid[])',[dossierIds]);await db.query('delete from academy.editorial_decisions where dossier_id=any($1::uuid[])',[dossierIds]);
+      await db.query('delete from academy.claim_evidence where claim_id in (select id from academy.claims where dossier_id=any($1::uuid[]))',[dossierIds]);
+      for(const table of ['claims','evidence']) await db.query(`delete from academy.${table} where dossier_id=any($1::uuid[])`,[dossierIds]);
+      await db.query('delete from academy.dossiers where id=any($1::uuid[])',[dossierIds]);await db.query('delete from academy.primary_documents where id=any($1::uuid[])',[researchDocuments]);
+    }
+    if(researchPdfJob) await db.query('delete from academy.production_jobs where id=$1',[researchPdfJob]);
     await db.query('delete from academy.event_reconciliations where actor=any($1::uuid[])',[userIds]);
     await db.query('delete from academy.pending_resolutions where actor=any($1::uuid[])',[userIds]);
     if(metadataJob) await db.query('delete from academy.production_jobs where id=$1',[metadataJob]);
@@ -310,6 +347,7 @@ try {
     await db.query('delete from academy.stories where id=any($1::uuid[])', [stories]);
     await db.query('delete from academy.sources where canonical_id=$1', [canonical]);
     await db.query('commit');
+    if(researchObjects.length) await admin.storage.from('dobrov-academy-assets').remove(researchObjects);
     for (const id of userIds) await admin.auth.admin.deleteUser(id);
   }
   await db.end();
