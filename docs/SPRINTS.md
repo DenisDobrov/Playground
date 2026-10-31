@@ -42,3 +42,6 @@ PR2–5 слиты. Есть Auth/manual decisions, реальные локал�
 ## SCI-002 — primary metadata / reviewed identities
 
 Бесплатные arXiv/Crossref lookup через существующий bounded transport, provider lease и worker queue; immutable snapshots, ручное подтверждение DOI↔arXiv, append-only pending resolution и reviewed event reconciliation реализованы локально в migration 011. Новые feed DOI suggestions больше не создают alias автоматически; старые aliases сохранены. Метаданные не верифицируют научные claims. Команды, ограничения и минимальный следующий content pilot — [SCI-002.md](SCI-002.md). Cloud/production не менялись; paid LLM не вызывались.
+
+
+SCI-003: первичный PDF/текст → located evidence → versioned Research Dossier → независимое human review и отдельный whole-dossier approval → Editorial Brief. Контракт, реальный локальный пилот и оставшаяся human acceptance — [SCI-003.md](SCI-003.md). Cloud/production не менялись; статьи/видео и paid calls не реализуются этим срезом.

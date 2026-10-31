@@ -101,3 +101,8 @@ arXiv metadata verification, Crossref DOI lookup, reviewed DOI/arXiv alias linki
 Человек подтверждает авторство/соавторов, научный вклад, методы, данные, права и финальную версию; применимые disclosure/submission требования проверяются перед будущей реализацией. Платформа может готовить пакет и помогать с checklist, но подача в arXiv остаётся явным действием ответственного человека в его аккаунте. Никакой фоновой подачи, автоматического authorship или выдачи импортированного чужого исследования за оригинальную работу. Сохранять lineage original research → manuscript revisions → human approval → submission record; approval новостной статьи не заменяет approval рукописи.
 
 Статус: backlog only, отдельный discovery/architecture review после MVP. В SCI-001/SCI-002 не реализуется, текущий HLD и MVP scope не меняет.
+
+
+## SCI-003 — Evidence dossier and Editorial Brief
+
+Локальная реализация и контракты — SCI-003.md; human acceptance реального paper pending до сохранённой проверки пользователя. Следующий минимальный срез: exact reviewed dossier/brief → immutable ES/EN article drafts + отдельный Spanish scene-script draft с claim mapping, caveats и metered adapter после pricing/approval. Не повторять extraction и не наследовать publication approval. FUT-ARXIV-001 остаётся отдельной будущей возможностью.

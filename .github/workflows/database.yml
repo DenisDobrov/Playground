@@ -16,6 +16,7 @@ jobs:
       - run: npm run test:budget:integration
       - run: npm run test:reviews:integration
       - run: npm run test:metadata:integration
+      - run: npm run test:research:integration
       - run: npm run build
       - run: npm run test:editorial:web
       - run: npm run db:stop

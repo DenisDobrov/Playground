@@ -1,0 +1,241 @@
+{
+  "planning": {
+    "angle": "A robust model-specific phase can coexist with a collapsing coherent amplitude: why that distinction matters for photonic components.",
+    "audience": "Educated non-specialists reading ES/EN science articles; Spanish explanatory video later.",
+    "whyMatters": "The model cautions against inferring usable device performance from a preserved phase alone.",
+    "novelty": "The authors analyze pure dephasing in the two-photon response; novelty relative to the full literature still needs contextual checking.",
+    "headline": "In a photonic model, dephasing can preserve a phase while eroding its coherent signal",
+    "backgroundExplanations": [
+      "Two-level emitter and chiral waveguide",
+      "Coherent amplitude versus photon number",
+      "Conditional phase and the singular-reference caveat"
+    ],
+    "relatedConcepts": [
+      "Pure dephasing",
+      "Two-photon scattering",
+      "Chiral waveguide",
+      "Conditional phase",
+      "Coherent amplitude"
+    ],
+    "potentialVisuals": [
+      "Original schematic contrasting phase angle with shrinking coherent amplitude; label it an explanatory illustration.",
+      "Replot only the quoted model-specific amplitudes with source/version/conditions and distinguish amplitude from probability."
+    ],
+    "openQuestions": [
+      "How do nonideal coupling, other pulse shapes and additional noise alter these results?",
+      "What would a directly comparable device experiment show?",
+      "How do these component-level results affect a complete trained architecture?"
+    ]
+  },
+  "sections": {
+    "scientificQuestion": [
+      {
+        "text": "Can a modeled chiral emitter retain a two-photon conditional phase under pure dephasing, and what happens to the coherent amplitude?",
+        "claimKeys": [
+          "phase",
+          "amplitude"
+        ],
+        "provenance": "ai_explanation"
+      }
+    ],
+    "background": [
+      {
+        "text": "The scientific context is two-photon scattering and phase-bearing photonic components; prior-work claims require checking the original cited papers.",
+        "claimKeys": [
+          "model"
+        ],
+        "provenance": "ai_explanation"
+      }
+    ],
+    "methodology": [
+      {
+        "text": "The paper specifies a two-level emitter, a chiral continuum and explicit approximations. No independent experimental verification has been performed in this workflow.",
+        "claimKeys": [
+          "model"
+        ],
+        "provenance": "source_supported"
+      }
+    ],
+    "mainFindings": [
+      {
+        "text": "The selected model has different outcomes for conditional phase and coherent amplitude, within its stated pulse/reference conditions.",
+        "claimKeys": [
+          "phase",
+          "amplitude"
+        ],
+        "provenance": "source_supported"
+      }
+    ],
+    "quantitativeResults": [
+      {
+        "text": "Use only the amplitude values at the explicitly listed dephasing ratios; these are not probabilities or experimental improvements.",
+        "claimKeys": [
+          "amplitude"
+        ],
+        "provenance": "source_supported"
+      }
+    ],
+    "supportingEvidence": [
+      {
+        "text": "Exact quotations are recorded separately on PDF pages 1 and 3, with checksum and version.",
+        "claimKeys": [
+          "model",
+          "phase",
+          "amplitude"
+        ],
+        "provenance": "ai_explanation"
+      }
+    ],
+    "limitations": [
+      {
+        "text": "Ideal coupling and approximation assumptions apply. The phase ratio is singular at gamma_phi = gamma; no claim of general noise immunity is supported.",
+        "claimKeys": [
+          "model",
+          "phase"
+        ],
+        "provenance": "source_supported"
+      }
+    ],
+    "alternativeInterpretations": [
+      {
+        "text": "A preserved phase should not be confused with preserved coherent signal or usable gate fidelity.",
+        "claimKeys": [
+          "phase",
+          "amplitude"
+        ],
+        "provenance": "ai_explanation"
+      }
+    ],
+    "demonstrated": [
+      {
+        "text": "The selected passages support model-specific theoretical calculations, not a new commercial-device experiment.",
+        "claimKeys": [
+          "model",
+          "phase",
+          "amplitude"
+        ],
+        "provenance": "source_supported"
+      }
+    ],
+    "unknowns": [
+      {
+        "text": "This workflow has not independently reproduced the equations/numerics, assessed all prior literature or established performance of a full neural-network architecture.",
+        "claimKeys": [],
+        "provenance": "unknown"
+      }
+    ],
+    "significance": [
+      {
+        "text": "The phase/amplitude distinction provides a bounded editorial explanation relevant to proposed photonic components, subject to human review.",
+        "claimKeys": [
+          "phase",
+          "amplitude"
+        ],
+        "provenance": "ai_explanation"
+      }
+    ],
+    "openQuestions": [
+      {
+        "text": "Experiments, nonideal devices and full-architecture consequences remain questions for further evidence, not conclusions of this dossier.",
+        "claimKeys": [],
+        "provenance": "unknown"
+      }
+    ],
+    "sourceReferences": [
+      {
+        "text": "M. Kozma and S. Hughes, arXiv:2610.30098v1, Pure dephasing destroys two-photon amplitude, not nonlinear phase; primary PDF pages 1 and 3.",
+        "claimKeys": [
+          "model",
+          "phase",
+          "amplitude"
+        ],
+        "provenance": "source_supported"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "key": "model",
+      "page": 1,
+      "section": "Model",
+      "quote": "Model. —We take a two-level system,   σ −   =   | g ⟩ ⟨ e | , cou-\npled to a chiral one-dimensional continuum within the\nrotating-wave and first Markov approximations. The emit-\nter decays into the guided mode at rate   γ   ≡   γ R   and into\nall other channels at   γ 0 , so   Γ =   γ   +   γ 0   and   Γ 2   = Γ +   γ ϕ ,\nand we define   ζ   =   i ∆+Γ 2 / 2   with   ∆ =   ω 0   − ω p   the emitter–\npulse detuning. Time-domain amplitudes are written in\nthe pulse frame, so the detuning enters through   ζ , while\nfrequency-domain quantities such as   t ( ω )   are referred to \nω 0 .\nThe   input–output   relation   is   a out ( t )   =   a in ( t )   − \ni √ γ σ − ( t ) .   All results below are quoted for the ideal\nchiral case   γ 0   = 0 , so   Γ =   γ , though Eq. (3) holds for\narbitrary   γ 0   [36].",
+      "context": "Model assumptions and ideal chiral regime, not a laboratory apparatus.",
+      "numericalResults": "The results below are quoted for gamma_0 = 0.",
+      "limitations": "Rotating-wave/first Markov approximations; ideal chiral coupling."
+    },
+    {
+      "key": "phase",
+      "page": 3,
+      "section": "Conditional phase, Eq. (4)",
+      "quote": "with   ϕ cond   = arg   R cond .   The entire conditional phase\ncomes from the bound-state term.   On resonance with\nreal   f   everything in Eq. (4) is real, so   ϕ cond   ∈ { 0 , π } \nexactly [38], and we find   ϕ cond   =   π   at every dephasing\nrate examined,   γ ϕ /γ   = 0   to   2 , for our chosen input pulse\n[Fig. 3(a)] [39].   The point   γ ϕ   =   γ   is excluded there\nonly because the linear reference   t ( ω 0 )   vanishes, making\nthe ratio singular even though   f   ′   is finite. The value   π \nrequires the bound-state term to exceed   ψ ′ ( t 1 ) ψ ′ ( t 2 ) . For\na Gaussian pulse at a pulse width of   γσ t   = 1   this holds out\nto   γ ϕ   ≃   2 γ   and fails only once the emitter has decoupled,\nwhere the node is in any case nearly transparent.",
+      "context": "Conditional phase for the chosen resonant real Gaussian pulse; singular reference excluded.",
+      "numericalResults": "Examined dephasing ratio 0 to 2; the ratio is singular at gamma_phi = gamma.",
+      "limitations": "Requires the bound-state term to exceed the product term; not universal for arbitrary pulses or all dephasing rates."
+    },
+    {
+      "key": "amplitude",
+      "page": 3,
+      "section": "Conditional phase, Fig. 3(b)",
+      "quote": "The penalty appears entirely in the amplitude.   The\nresonant two-photon transmission   | f   ′ /f   |   falls monoton-\nically,   1 . 46   →   1 . 07   →   0 . 79   →   0 . 43   →   0 . 03   for \nγ ϕ /γ   = 0 ,   0 . 25 ,   0 . 5 ,   1 ,   2   [Fig. 3(b)], and the coherent\nfraction   1\n2 \nRR   | E [ f   ′ ] | 2   falls from   1   to   0 . 19   over   γ ϕ   = 0   → \nγ   [Fig. 2(d)] while the photon number stays exactly   2 .",
+      "context": "Coherent amplitude and coherent fraction are distinct from photon count and gate fidelity.",
+      "numericalResults": "Amplitude 1.46, 1.07, 0.79, 0.43, 0.03 at dephasing ratios 0, 0.25, 0.5, 1, 2; coherent fraction 1 to 0.19 from ratio 0 to 1.",
+      "limitations": "Model/pulse-specific calculated numbers; do not call them measured device efficiencies."
+    }
+  ],
+  "claims": [
+    {
+      "key": "model",
+      "textEn": "The paper models a two-level emitter coupled to an ideal chiral continuum under rotating-wave and first Markov approximations; the quoted main results take nonguided loss gamma_0 = 0.",
+      "type": "theoretical_prediction",
+      "evidenceKeys": [
+        "model"
+      ],
+      "caveatEn": "Idealized theoretical model; not an experimental demonstration or a model of every emitter.",
+      "domainId": "physics",
+      "evidenceLevel": "P0"
+    },
+    {
+      "key": "phase",
+      "textEn": "For the chosen resonant Gaussian pulse, the calculated conditional phase remains pi over the examined range up to gamma_phi/gamma about 2 when the defining reference is nonzero; gamma_phi = gamma is excluded because the phase ratio is singular.",
+      "type": "theoretical_prediction",
+      "evidenceKeys": [
+        "phase"
+      ],
+      "caveatEn": "The reference vanishes at gamma_phi = gamma. The conclusion depends on the chosen pulse and a bound-state dominance condition; it is not a universal all-noise theorem.",
+      "domainId": "physics",
+      "evidenceLevel": "P0"
+    },
+    {
+      "key": "amplitude",
+      "textEn": "In the calculated example the coherent two-photon transmission amplitude decreases from 1.46 to 0.03 across the listed dephasing ratios 0 to 2; retaining a phase relation does not retain coherent amplitude.",
+      "type": "theoretical_prediction",
+      "evidenceKeys": [
+        "amplitude"
+      ],
+      "caveatEn": "These are calculated amplitudes, not measured probabilities or gate fidelities. The coherent fraction and photon number are different observables.",
+      "domainId": "physics",
+      "evidenceLevel": "P0"
+    },
+    {
+      "key": "misleading-control",
+      "textEn": "Because the conditional phase survives, practical photonic quantum neural networks are immune to dephasing.",
+      "type": "author_interpretation",
+      "evidenceKeys": [
+        "phase",
+        "amplitude"
+      ],
+      "caveatEn": "INTENTIONAL MISLEADING CONTROL: reject. The paper reports coherent-amplitude penalties and model-specific assumptions; a matching quotation cannot support this inference.",
+      "domainId": "physics",
+      "evidenceLevel": "P0"
+    },
+    {
+      "key": "unsupported-control",
+      "textEn": "A commercial device experimentally demonstrated a 99 percent neural-network accuracy improvement.",
+      "type": "speculation",
+      "evidenceKeys": [],
+      "caveatEn": "INTENTIONAL UNSUPPORTED CONTROL: reject. No source passage supports this result.",
+      "domainId": "physics",
+      "evidenceLevel": "P0"
+    }
+  ]
+}

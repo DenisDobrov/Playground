@@ -82,3 +82,6 @@ CI рассчитан на репозиторий с корнем в этой п
 В live редакции: `/editorial/imports` → вставить Markdown или загрузить файл → preview → выбрать секции/identity → подтвердить. Оригинал доступен в приватном архиве; повтор не создаёт дублей. Контракт и ограничения — [docs/SCI-001.md](docs/SCI-001.md). `npm run test:reviews:integration` демонстрирует импорт настоящего обзора в локальной транзакции с rollback.
 
 SCI-001 final review: после локальной миграции 010 выполнить `npm run web:local:review-key` и перезапустить web. Для подтверждения импорта теперь нужен dedicated server parser attestation; подробности и merge gate — [docs/SCI-001-FINAL-REVIEW.md](docs/SCI-001-FINAL-REVIEW.md). SCI-002 реализует бесплатное primary metadata enrichment и reviewed identity resolution; [контракт и локальные команды](docs/SCI-002.md).
+
+
+SCI-003: первичный PDF/текст → located evidence → versioned Research Dossier → независимое human review и отдельный whole-dossier approval → Editorial Brief. Контракт, реальный локальный пилот и оставшаяся human acceptance — [SCI-003.md](docs/SCI-003.md). Cloud/production не менялись; статьи/видео и paid calls не реализуются этим срезом.

@@ -47,7 +47,10 @@
     "test:reviews:integration": "tsx tests/integration/review-import.ts",
     "web:local:review-key": "node scripts/local-review-signing-env.mjs",
     "test:metadata:integration": "tsx tests/integration/metadata.ts",
-    "test:metadata:network": "tsx --env-file=.env.local-worker tests/integration/metadata-network.ts"
+    "test:metadata:network": "tsx --env-file=.env.local-worker tests/integration/metadata-network.ts",
+    "test:research:integration": "tsx tests/integration/research.ts",
+    "research:local:prepare": "tsx --env-file=.env.local-worker apps/worker/src/research-local.ts",
+    "research:local:export": "tsx --env-file=.env.local-worker apps/worker/src/research-export.ts"
   },
   "devDependencies": {
     "@types/node": "26.6.5",
