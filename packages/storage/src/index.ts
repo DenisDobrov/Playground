@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import type { BudgetStore, ProductionQuote, Usage } from '@science/pipeline';
+import type { BudgetStore, ProductionQuote, Usage,ContentRepository } from '@science/pipeline';
 
 export interface ProductionJob {
   id: string; story_id: string | null; stage: string; payload: Record<string, unknown>;
@@ -64,4 +64,21 @@ export function createBudgetStore(): BudgetStore {
       await rpc('budget_settle', {p_id:id,p_token:token,p_actual:actualMicros,p_usage:usage,p_reference:reference});
     }
   };
+}
+export function createContentRepository():ContentRepository {
+ const db=workerClient();
+ async function rpc(name:string,args:Record<string,unknown>) {
+  const {data,error}=await db.rpc(name,args);if(error)throw new Error('Content command blocked: '+error.code);return data;
+ }
+ return {
+  input:briefId=>rpc('content_generation_input',{p_brief:briefId}),
+  async receipt(operationId){const op=await db.from('budget_operations').select('state').eq('id',operationId).single();if(op.error)throw new Error('Content ledger unavailable');if(op.data.state!=='settled')return null;const {data,error}=await db.from('content_receipts').select('id,response').eq('operation_id',operationId).maybeSingle();if(error)throw new Error('Content receipt unavailable');return data;},
+  record:(operationId,briefId,inputHash,kind,response,audit)=>rpc('record_content_receipt',{p_operation:operationId,p_brief:briefId,p_input_hash:inputHash,p_kind:kind,p_response:response,p_audit:audit}),
+  save:receiptId=>rpc('save_content_draft',{p_receipt:receiptId})
+  ,async feedback(briefId,kind) {
+   const d=await db.from('content_drafts').select('id,payload').eq('brief_id',briefId).eq('kind',kind).order('created_at',{ascending:false}).order('id').limit(1).maybeSingle();if(d.error)throw new Error('Content feedback unavailable');if(!d.data)return null;
+   const r=await db.from('content_reviews').select('id,decision,reason').eq('draft_id',d.data.id).order('version',{ascending:false}).limit(1).maybeSingle();if(r.error)throw new Error('Content feedback unavailable');
+   return r.data?.decision==='request_revision'?{reviewId:r.data.id,draftId:d.data.id,reason:r.data.reason,previousDraft:d.data.payload}:null;
+  }
+ };
 }

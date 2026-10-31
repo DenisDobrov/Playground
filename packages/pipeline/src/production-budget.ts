@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 
 export const productionCategories = ['news_analysis', 'content', 'voice', 'video'] as const;
 export type ProductionCategory = typeof productionCategories[number];
-export type Usage = Partial<Record<'input_tokens' | 'output_tokens' | 'characters' | 'render_ms' | 'audio_ms', number>>;
+export type Usage = Partial<Record<'input_tokens' | 'output_tokens' | 'characters' | 'render_ms' | 'audio_ms' | 'cached_input_tokens' | 'thinking_tokens', number>>;
 export interface ProductionQuote {
   key: string; month: string; category: ProductionCategory; estimateMicros: number;
   storyId: string | null; videoKey: string | null; tool: string; toolVersion: string; priceVersion: string; inputHash: string;

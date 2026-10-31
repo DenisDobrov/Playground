@@ -3,6 +3,7 @@ export * from './releases';
 export * from './localized-article';
 export * from './research';
 export * from './dossier-video';
+export * from './content';
 
 export const claimTypes = ['measured_result', 'author_interpretation', 'theoretical_prediction', 'vendor_claim', 'editorial_explanation', 'speculation'] as const;
 export const stageNames = ['discovery', 'ranking', 'research', 'verification', 'writing', 'language_check', 'visual_plan', 'voice', 'render', 'editorial_review', 'publication'] as const;
