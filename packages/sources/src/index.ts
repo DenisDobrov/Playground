@@ -3,6 +3,7 @@ export * from './feeds';
 export * from './fetch';
 export * from './reviews';
 export * from './review-submission';
+export * from './metadata';
 export function canonicalSourceId(input: string): string {
   const value = input.trim();
   const doi = value.replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '').replace(/^doi:\s*/i, '');

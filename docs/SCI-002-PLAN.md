@@ -1,6 +1,6 @@
 # SCI-002 — Primary Source Metadata Enrichment and Pending Identity Resolution
 
-Статус: план, реализация не начата. Основание — Source/Story/aliases и intake SCI-001. HLD, MVP scope, release gates и месячный бюджет остаются без изменений. Платные LLM не используются. Подготовка собственных научных рукописей и подача в arXiv — отдельная будущая возможность из BACKLOG.md, не часть ingestion.
+Статус: baseline реализован в SCI-002; контракт, проверки и ограничения — SCI-002.md. Основание — Source/Story/aliases и intake SCI-001. HLD, MVP scope, release gates и месячный бюджет остаются без изменений. Платные LLM не используются. Подготовка собственных научных рукописей и подача в arXiv — отдельная будущая возможность из BACKLOG.md, не часть ingestion.
 
 ## Короткий план реализации
 

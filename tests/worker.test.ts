@@ -8,6 +8,15 @@ function store(stage = 'normalize_source', identifier = '2401.12345') {
   };
 }
 describe('one-shot worker lifecycle', () => {
+  it('finishes metadata only after the bounded adapter persists its snapshot', async () => {
+    const db=store('metadata_enrichment');const metadata=vi.fn().mockResolvedValue({snapshotId:'snapshot',cached:false,paidCalls:0});
+    expect((await runOnce(db,new AbortController().signal,metadata)).event).toBe('job.succeeded');
+    expect(metadata).toHaveBeenCalledWith('arxiv:2401.12345');expect(db.finish.mock.calls[0][1]).toEqual({snapshotId:'snapshot',cached:false,paidCalls:0});
+  });
+  it('does not acknowledge deferred or failed metadata as successful', async () => {
+    const db=store('metadata_enrichment');const metadata=vi.fn().mockRejectedValue(new Error('METADATA_DEFERRED'));
+    expect((await runOnce(db,new AbortController().signal,metadata)).event).toBe('job.failed');expect(db.finish).not.toHaveBeenCalled();expect(db.fail).toHaveBeenCalled();
+  });
   it('does not claim a job after graceful shutdown has begun', async () => {
     const db = store(); const abort = new AbortController(); abort.abort();
     expect((await runOnce(db, abort.signal)).event).toBe('worker.stopped');

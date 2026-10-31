@@ -120,8 +120,8 @@ export function parseExternalReview(markdown: string): ParsedReview {
       const reportedDate=m[2].replace(/\*\*/g,'').trim();
       events.push({kind:m[1].toLowerCase()==='announced' ? 'scientific_announcement' : /preprint/i.test(reportedDate) ? 'initial_preprint' : journal ? 'journal_publication' : 'scientific_announcement',reportedDate,date:dateValue(reportedDate),revision:null});
     }
-    const explicit=raw.match(/^\*{0,2}Event:\*{0,2}\s*(initial_preprint|preprint_revision|journal_publication|experimental_result|independent_replication|correction|retraction|scientific_announcement)\b/im);
-    if(explicit) events.push({kind:explicit[1].toLowerCase() as ScientificEventKind,reportedDate:null,date:null,revision:null});
+    const explicit=[...raw.matchAll(/^\*{0,2}Event:\*{0,2}\s*(initial_preprint|preprint_revision|journal_publication|experimental_result|independent_replication|correction|retraction|scientific_announcement)\b/gim)];
+    if(explicit.length) for(const observation of explicit) events.push({kind:observation[1].toLowerCase() as ScientificEventKind,reportedDate:null,date:null,revision:null});
     else {
       const named=title.match(/\b(retraction|correction|independent replication|new experimental results)\b/i)?.[1].toLowerCase();
       if(named) events.push({kind:named==='independent replication' ? 'independent_replication' : named==='new experimental results' ? 'experimental_result' : named as ScientificEventKind,reportedDate:null,date:null,revision:null});

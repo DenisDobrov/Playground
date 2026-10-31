@@ -10,14 +10,14 @@ select ok(not has_function_privilege('authenticated','academy.ingest_candidate(u
 select ok(not has_table_privilege('anon','academy.feed_state','select'),'Feed state remains private');
 select throws_ok($$select academy.ingest_candidate((select token from intake_ctx),'{"feedId":"arxiv-physics"}')$$,'42501',null,'Lease bound to exact feed');
 update intake_ctx set story=academy.ingest_candidate(token,'{"feedId":"arxiv-ai","canonicalId":"arxiv:2610.99999","aliases":["arxiv:2610.99999","doi:10.9999/intake-fixture"],"url":"https://arxiv.org/abs/2610.99999","titleEn":"Synthetic intake fixture","domain":"ai","originalPublishedAt":"2026-10-21T00:00:00Z","revisionAt":"2026-10-22T00:00:00Z","fetchedAt":"2026-10-22T01:00:00Z","flags":[],"categories":["cs.AI"]}');
-select is((select count(*) from academy.source_aliases where alias in ('arxiv:2610.99999','doi:10.9999/intake-fixture')),2::bigint,'DOI and arXiv share identity');
+select is((select count(*) from academy.source_aliases where alias in ('arxiv:2610.99999','doi:10.9999/intake-fixture')),1::bigint,'Feed DOI awaits primary metadata and human relationship confirmation');
 select ok((select not full_text_available and license is null and not peer_reviewed from academy.sources where canonical_id='arxiv:2610.99999'),'Metadata never implies full text, rights or peer review');
 insert into auth.users(id,email) values('06000000-0000-4000-8000-000000000001','intake-editor@example.test');
 insert into academy.editor_members(user_id,role) values('06000000-0000-4000-8000-000000000001','editor');
 grant select on intake_ctx to authenticated;
 set local role authenticated;
 select set_config('request.jwt.claim.sub','06000000-0000-4000-8000-000000000001',true);
-select is(academy.create_candidate('doi:10.9999/intake-fixture','Manual alias fixture','ai'),(select story from intake_ctx),'Manual DOI reuses imported arXiv story');
+select isnt(academy.create_candidate('doi:10.9999/intake-fixture','Manual alias fixture','ai'),(select story from intake_ctx),'Unconfirmed DOI stays separate; SCI-002 holds this conflict instead of merging');
 reset role;
 select ok(academy.finish_feed('arxiv-ai',(select token from intake_ctx),200,'etag1',null,'2026-10-22T00:00:00Z'),'Successful batch saves validators');
 update academy.feed_locks set next_allowed_at=now()-interval '1 second' where provider='arxiv';

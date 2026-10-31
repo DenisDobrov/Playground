@@ -27,7 +27,7 @@ npm run gold:export:local
 
 ## Идентичность и свежесть
 
-Миграция 005 добавляет feed state/locks и source aliases. DOI, сообщённый arXiv metadata, связывается с arXiv identity; конфликт существующих identities останавливает intake для review, не сливает статьи автоматически. Ручной DOI после импорта arXiv переиспользует тот же Source/Story. Metadata не означает verified claim, peer review, full-text access или права на figure.
+Миграция 005 добавляет feed state/locks и source aliases. В исходной migration 005 DOI из arXiv feed добавлялся как alias. Начиная с SCI-002 / migration 011 новые DOI suggestions требуют primary metadata и явного human confirmation; до этого ручной DOI остаётся отдельным кандидатом. Старые aliases сохранены, но не получают статуса подтверждённой библиографической связи автоматически. Конфликт существующих Source/Story удерживается для review. Metadata не означает verified claim, peer review, full-text access или права на figure.
 
 Хранятся originalPublishedAt, revisionAt, pressReleaseAt и fetchedAt. Порог старой работы — 180 дней, это инженерная гипотеза, не научное правило. Большой разрыв между оригиналом и релизом → rehash; старая первая версия при свежем fetch → older_original; неизвестная дата/будущая дата/обратный порядок версий требуют review. Feed freshness считается по датам entries, не по факту недавнего HTTP 200/304. NASA всегда требует поиска primary study. Сюжеты остаются непроверенными кандидатами, не публикуются.
 
@@ -58,3 +58,8 @@ npm run gold:export:local
 ## Внешние обзоры — SCI-001
 
 Помимо feed intake, editor может импортировать Markdown обзор через `/editorial/imports` с предварительным выбором секций. Это локальный deterministic parsing без fetch/LLM. Первичные metadata и вторичный текст обзора хранятся раздельно; повтор безопасен. Original archive, future-scope и reported events описаны в `SCI-001.md`. Для live DB нужна migration 009; merge кода не устанавливает её в cloud.
+
+
+## SCI-002 — primary metadata / reviewed identities
+
+Бесплатные arXiv/Crossref lookup через существующий bounded transport, provider lease и worker queue; immutable snapshots, ручное подтверждение DOI↔arXiv, append-only pending resolution и reviewed event reconciliation реализованы локально в migration 011. Новые feed DOI suggestions больше не создают alias автоматически; старые aliases сохранены. Метаданные не верифицируют научные claims. Команды, ограничения и минимальный следующий content pilot — [SCI-002.md](SCI-002.md). Cloud/production не менялись; paid LLM не вызывались.

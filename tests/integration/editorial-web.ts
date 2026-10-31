@@ -6,6 +6,8 @@ import { createServer } from 'node:net';
 import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import pg from 'pg';
+import {readFile} from 'node:fs/promises';
+import {parsePrimaryMetadata,metadataHash} from '@science/sources';
 
 const origin = 'http://localhost:3000';
 const api = 'http://127.0.0.1:56321';
@@ -23,6 +25,8 @@ const reviewIds:string[]=[];
 const reviewArxiv=`arxiv:9901.${String(Math.floor(Math.random()*100000)).padStart(5,'0')}`;
 let reviewStory:string|undefined;
 let reviewOwned=false;
+let metadataSnapshot:string|undefined;
+let metadataJob:string|undefined;
 const budgetMonth='2095-01-01';
 let budgetFixture=false;
 const canonical = `doi:10.9999/academy-e2e-${randomUUID()}`;
@@ -54,8 +58,8 @@ class Browser {
     return this.request(path, { method: 'POST', body: form, headers: { Origin: requestOrigin } });
   }
 }
-function formFrom(html: string, marker: string): FormData {
-  const body = [...html.matchAll(/<form\b[^>]*>([\s\S]*?)<\/form>/g)].map(m => m[1]).find(s => marker === 'logout' ? s.includes('Cerrar sesión') : s.includes(`name="${marker}"`));
+function formFrom(html: string, marker: string, command?:string): FormData {
+  const body = [...html.matchAll(/<form\b[^>]*>([\s\S]*?)<\/form>/g)].map(m => m[1]).find(s => marker === 'logout' ? s.includes('Cerrar sesión') : s.includes(`name="${marker}"`) && (!command||s.includes(`value="${command}"`)));
   assert.ok(body, `Missing form ${marker}`);
   const form = new FormData();
   for (const match of body.matchAll(/<input\b[^>]*>/g)) {
@@ -237,6 +241,30 @@ try {
   assert.ok(!(await (await reviewer.request('/editorial/imports')).text()).includes('name="markdown"'),'Reviewer cannot prepare imports');
   assert.ok((await reviewer.post(confirm,origin,'/editorial/imports')).status>=400,'Reviewer cannot invoke confirm directly');
   assert.match((await outsider.request('/editorial/imports/'+reviewId)).headers.get('location')||'',/notice=access/);
+  // SCI-002: real Server Actions, no external fetch; fixtures enter through the trusted test worker boundary.
+  const pendingItem=(await db.query("select id from academy.external_review_items where review_id=$1 and item_key='section-3'",[reviewId])).rows[0].id;
+  const primaryRaw=(await readFile('tests/fixtures/metadata/arxiv.xml','utf8')).replaceAll('9910.00001',reviewArxiv.slice(6));
+  const primary=parsePrimaryMetadata(reviewArxiv,primaryRaw);
+  metadataSnapshot=(await db.query("insert into academy.metadata_snapshots(identity,provider,adapter_version,raw_payload,payload_hash,normalized) values($1,'arxiv','primary-metadata/1',$2,$3,$4) returning id",[reviewArxiv,primaryRaw,metadataHash(primaryRaw),primary])).rows[0].id;
+  const metadataPath='/editorial/metadata?item='+pendingItem+'&identity='+encodeURIComponent(reviewArxiv);
+  const jobsBefore=(await db.query('select count(*) from academy.production_jobs')).rows[0].count;
+  const metadataPage=await (await editor.request(metadataPath)).text();
+  assert.match(metadataPage,/Declarado en el informe/);assert.match(metadataPage,/Recuperado del servicio primario/);
+  assert.ok(!metadataPage.includes(reviewSigningKey),'Dedicated import key never reaches metadata UI');
+  assert.equal((await db.query('select count(*) from academy.production_jobs')).rows[0].count,jobsBefore,'Metadata preview is read-only');
+  const resolveForm=formFrom(metadataPage,'command','resolve');resolveForm.set('snapshot',metadataSnapshot!);resolveForm.set('reason','Checked original pending report against primary arXiv metadata in HTTP test.');
+  assert.ok((await editor.post(resolveForm,'https://attacker.example',metadataPath)).status>=400,'Metadata action enforces Origin');
+  assert.match((await editor.post(resolveForm,origin,metadataPath)).headers.get('location')||'',/notice=saved/);
+  assert.match((await editor.post(resolveForm,origin,metadataPath)).headers.get('location')||'',/notice=saved/,'Repeated confirmation is idempotent');
+  assert.equal((await db.query('select count(*)::int n from academy.pending_resolutions where item_id=$1',[pendingItem])).rows[0].n,1);
+  assert.equal((await db.query('select story_id from academy.external_review_items where id=$1',[pendingItem])).rows[0].story_id,null,'Original pending item remains immutable');
+  const reviewerMetadata=await (await reviewer.request(metadataPath)).text();assert.match(reviewerMetadata,/Historial de resolución/);
+  assert.ok(!reviewerMetadata.includes('value="resolve"'),'Reviewer sees history without mutation form');
+  assert.ok((await reviewer.post(resolveForm,origin,metadataPath)).status>=400,'Reviewer cannot replay editor action');
+  assert.match((await outsider.request(metadataPath)).headers.get('location')||'',/notice=access/);
+  const fetchForm=formFrom(metadataPage,'command','fetch');fetchForm.set('identity',reviewArxiv);
+  assert.match((await editor.post(fetchForm,origin,metadataPath)).headers.get('location')||'',/notice=queued/);
+  metadataJob=(await db.query("select id from academy.production_jobs where stage='metadata_enrichment' and payload->>'identifier'=$1",[reviewArxiv])).rows[0].id;
   assert.match((await outsider.request('/editorial/stories')).headers.get('location') || '', /notice=access/);
   assert.match((await outsider.request('/editorial/budget?month=2095-01')).headers.get('location') || '', /notice=access/);
   assert.match((await outsider.request('/editorial')).headers.get('location') || '', /notice=access/);
@@ -245,12 +273,19 @@ try {
   const logout = formFrom(afterReload, 'logout');
   assert.equal((await editor.post(logout)).headers.get('location'), '/login');
   assert.equal((await editor.request('/editorial')).headers.get('location'), '/login');
-  console.log('PASS: Auth/PKCE, inbox/catalog/budget, Markdown paste/upload preview without writes, selected confirm/reimport, source provenance, scope/manual flags, CSRF and roles');
+  console.log('PASS: Auth/PKCE, inbox/catalog/budget, Markdown paste/upload preview without writes, selected confirm/reimport, source provenance, metadata preview/pending confirmation/replay, scope/manual flags, CSRF and roles');
 } finally {
   if (web && web.exitCode === null) web.kill();
   if (userIds.length) {
+    // Local fixture cleanup only: privileged transaction bypasses immutability triggers, never production.
+    await db.query('begin');await db.query('set local session_replication_role=replica');
+    await db.query('delete from academy.event_reconciliations where actor=any($1::uuid[])',[userIds]);
+    await db.query('delete from academy.pending_resolutions where actor=any($1::uuid[])',[userIds]);
+    if(metadataJob) await db.query('delete from academy.production_jobs where id=$1',[metadataJob]);
+    if(metadataSnapshot) await db.query('delete from academy.metadata_snapshots where id=$1',[metadataSnapshot]);
     reviewIds.push(...(await db.query('select id from academy.external_reviews where imported_by=any($1::uuid[])',[userIds])).rows.map(r=>r.id));
     if(reviewIds.length) {
+      await db.query('delete from academy.review_event_observations where item_id in (select id from academy.external_review_items where review_id=any($1::uuid[]))',[reviewIds]);
       await db.query('delete from academy.scientific_events where review_item_id in (select id from academy.external_review_items where review_id=any($1::uuid[]))',[reviewIds]);
       await db.query('delete from academy.external_review_items where review_id=any($1::uuid[])',[reviewIds]);
       await db.query('delete from academy.external_reviews where id=any($1::uuid[])',[reviewIds]);
@@ -274,6 +309,7 @@ try {
     for (const table of ['production_jobs', 'editorial_decisions', 'story_sources', 'story_domains']) await db.query(`delete from academy.${table} where story_id=any($1::uuid[])`, [stories]);
     await db.query('delete from academy.stories where id=any($1::uuid[])', [stories]);
     await db.query('delete from academy.sources where canonical_id=$1', [canonical]);
+    await db.query('commit');
     for (const id of userIds) await admin.auth.admin.deleteUser(id);
   }
   await db.end();
