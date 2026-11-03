@@ -29,7 +29,7 @@ Vercel распознал `apps/web` и Docker worker. Выбрать **Import s
 
 1. Сборка должна завершиться без БД и API keys: текущее приложение работает на synthetic fixture.
 2. Проверить `/`, `/editorial`, `/politica`, `/icon.svg` и `/api/health`.
-3. `health` должен вернуть `mode: demo` и `publicationEnabled: false`.
+3. После PROD-002 health-fix `/api/health` проверяет только liveness: `checks.web: alive`, `publicationEnabled: false`, без утверждения о БД/worker. Приватный `/api/readiness` требует editorial membership и возвращает 503 при unavailable/degraded dependencies; непроверенный worker не считается ready. Детали — `PROD-002-ACCEPTANCE.md`. До rollout на старом deployment остаётся прежний hardcoded demo response.
 4. Маркировка demo и запрет индексации остаются до настоящего контента. Наличие рабочего домена не превращает fixture в новости.
 5. В Project Settings проверить Git production branch и workspace source access.
 
