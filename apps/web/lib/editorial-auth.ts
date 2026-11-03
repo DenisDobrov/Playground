@@ -4,11 +4,16 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { editorialConfig } from './editorial-config';
 
-export async function editorialClient(writable = false) {
+export async function editorialClient(writable = false, deadlineMs?: number) {
   const config = editorialConfig();
   const jar = await cookies();
+  const deadline = deadlineMs === undefined ? undefined : Date.now() + Math.min(5000, Math.max(1, deadlineMs));
   return createServerClient(config.url, config.key, {
     db: { schema: 'academy' },
+    ...(deadline === undefined ? {} : { global: { fetch: (input: RequestInfo | URL, init?: RequestInit) => {
+      const timeout = AbortSignal.timeout(Math.max(1, deadline - Date.now()));
+      return fetch(input, { ...init, signal: init?.signal ? AbortSignal.any([init.signal, timeout]) : timeout });
+    } } }),
     cookieOptions: { name: 'da-academy-auth', httpOnly: true, sameSite: 'lax', secure: config.secure, path: '/' },
     cookies: { getAll: () => jar.getAll(), ...(writable ? { setAll: (updates: { name: string; value: string; options: Parameters<typeof jar.set>[2] }[]) => {
       for (const { name, value, options } of updates) jar.set(name, value, options);

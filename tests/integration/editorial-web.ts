@@ -113,6 +113,8 @@ try {
     web!.stderr!.resume(); // Do not echo sessions, callback URLs or Auth errors to CI logs.
   });
   const anon = new Browser();
+  const liveness=await anon.request('/api/health');assert.equal(liveness.status,200);assert.deepEqual(await liveness.json(),{status:'ok',checks:{web:'alive'},publicationEnabled:false});assert.match(liveness.headers.get('cache-control')||'',/no-store/);
+  const anonymousReadiness=await anon.request('/api/readiness');assert.equal(anonymousReadiness.status,401);assert.deepEqual(await anonymousReadiness.json(),{status:'unavailable'});
   for (const path of ['/en','/en/method','/en/stories/reading-ai-results']) {
     const publicPage = await anon.request(path);
     assert.equal(publicPage.status,200,'English page loads');
@@ -155,6 +157,8 @@ try {
   response = await editor.request('/editorial');
   assert.equal(response.status, 200, 'Expired stored session is refreshed');
   assert.ok(response.headers.getSetCookie().some(c => c.startsWith('da-academy-auth')), 'Refresh cookies reach the browser');
+  editor.expireStoredSession();
+  const editorReadiness=await editor.request('/api/readiness');assert.equal(editorReadiness.status,503);assert.match(editorReadiness.headers.get('cache-control')||'',/no-store/);assert.deepEqual((await editorReadiness.json()).checks,{web:'alive',editorialDatabase:'ready',worker:'unverified'});assert.ok(editorReadiness.headers.getSetCookie().some(c=>c.startsWith('da-academy-auth')),'Private readiness persists ordinary Auth refresh without extracting browser secrets');
   html = await response.text();
   const intake = formFrom(html, 'identifier'); intake.set('identifier', canonical); intake.set('title', 'Synthetic HTTP integration fixture'); intake.set('domain', 'ai');
   assert.match((await editor.post(intake)).headers.get('location') || '', /notice=saved/);
@@ -180,6 +184,7 @@ try {
   selection.set('requestId', randomUUID()); selection.set('decision', 'hold');
   assert.match((await editor.post(selection)).headers.get('location') || '', /notice=conflict/);
   const reviewer = await sessionWithoutEmail(emails[1]);
+  const reviewerReadiness=await reviewer.request('/api/readiness');assert.equal(reviewerReadiness.status,503);assert.equal((await reviewerReadiness.json()).checks.editorialDatabase,'ready');
   assert.equal((await db.query('select count(*)::int n from academy.budget_periods where month=$1',[budgetMonth])).rows[0].n,0,'Refuse to replace an existing budget');
   await db.query("select academy.budget_configure($1,200000000,'{\"news_analysis\":30000000,\"content\":50000000,\"voice\":50000000,\"video\":70000000}',10000000,25000000)",[budgetMonth]);
   budgetFixture=true;
@@ -210,6 +215,7 @@ try {
   assert.equal((pageTwo.match(/class="candidate-card"/g)||[]).length,1,'Second page includes the remaining story');
   assert.equal((await editor.request('/editorial/stories?q=' + marker + '&page=999')).status,200,'Out-of-range page remains a usable empty result');
   const outsider = await sessionWithoutEmail(emails[2]);
+  const outsiderReadiness=await outsider.request('/api/readiness');assert.equal(outsiderReadiness.status,403);assert.deepEqual(await outsiderReadiness.json(),{status:'unavailable'});
   // Paste/file preview is read-only; only confirmed selections enter the editorial workflow.
   assert.equal((await db.query('select count(*)::int n from academy.sources where canonical_id=$1',[reviewArxiv])).rows[0].n,0,'Refuse to adopt an existing import test source');
   reviewOwned=true;
@@ -302,6 +308,7 @@ try {
   const logout = formFrom(afterReload, 'logout');
   assert.equal((await editor.post(logout)).headers.get('location'), '/login');
   assert.equal((await editor.request('/editorial')).headers.get('location'), '/login');
+  assert.equal((await editor.request('/api/readiness')).status,401,'Logout removes private readiness access');
   console.log('PASS: Auth/PKCE, inbox/catalog/budget, Markdown paste/upload preview without writes, selected confirm/reimport, source provenance, metadata preview/pending confirmation/replay, scope/manual flags, PDF/Storage/dossier/scientific review and brief gate, CSRF and roles');
 } finally {
   if (web && web.exitCode === null) web.kill();
