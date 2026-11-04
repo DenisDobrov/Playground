@@ -1,0 +1,26 @@
+# Approval-only template. No service has been created. Do not auto-sync.
+# After approval deploy the exact reviewed Git SHA and verify it on Render.
+services:
+  - type: cron
+    name: dobrov-academy-worker-prod
+    runtime: docker
+    repo: https://github.com/DenisDobrov/Playground
+    branch: codex/prod-002-worker-preparation
+    region: ohio
+    plan: 0.5c-512mb
+    schedule: "*/15 * * * *"
+    autoDeployTrigger: 'off'
+    dockerfilePath: ./apps/worker/Dockerfile
+    dockerContext: .
+    dockerCommand: timeout --signal=TERM --kill-after=10s 240s env WORKER_QUEUE_MODE=acceptance npm run worker:once
+    envVars:
+      - key: SUPABASE_URL
+        value: https://upwrplsgunjanragbggb.supabase.co
+      - key: SUPABASE_DB_SCHEMA
+        value: academy
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: WORKER_QUEUE_MODE
+        value: acceptance
+      - key: NODE_ENV
+        value: production

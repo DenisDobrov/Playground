@@ -13,7 +13,7 @@ function workerClient() {
   if (schema !== 'academy') throw new Error('Worker is restricted to the academy schema');
   return createClient(url, secret, { db: { schema }, auth: { persistSession: false, autoRefreshToken: false } });
 }
-export function createWorkerStore() {
+export function createWorkerStore(acceptanceOnly = false) {
   const db = workerClient();
   return {
     async enqueue(stage: string, idempotencyKey: string, payload: Record<string, unknown>, storyId: string | null = null): Promise<string> {
@@ -22,7 +22,7 @@ export function createWorkerStore() {
       return data as string;
     },
     async claim(): Promise<ProductionJob | null> {
-      const { data, error } = await db.rpc('claim_job');
+      const { data, error } = await db.rpc(acceptanceOnly ? 'claim_worker_acceptance_job' : 'claim_job');
       if (error) throw new Error(`Job claim failed: ${error.code}`);
       return (data?.[0] as ProductionJob | undefined) ?? null;
     },

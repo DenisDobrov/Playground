@@ -1,5 +1,11 @@
 # PROD-002 — Final production acceptance, 3 November 2026
 
+## 4 November worker continuation
+
+PR16 has since been merged/deployed at `7bb34a9542754e06c3b623140d4a4cc05f48fa7f`. Owner-confirmed editor write/reload/logout and private database readiness passed. Reviewer remains BLOCKED by owner decision; editor role unchanged. Natural session expiry awaits passive observation. The historical sections below retain the pre-rollout baseline.
+
+The current worker approval package is [PROD-002-WORKER.md](PROD-002-WORKER.md), with an approval-only configuration in `deploy/render-worker.approval.yaml`. No Render service or cloud migration has been created/applied. The prepared scoped acceptance RPC requires explicit approval separately from the paid service. General queue processing is not included in this proposed test rollout.
+
 **OPEN.** SCI-004 PR11 remains Draft. OPS-003 is unchanged. No production accounts/roles, real research records, Auth settings, billing, workers or database migrations are changed by this work. Computer Use's Windows URL safety restriction is not bypassed; the remaining personal-browser checks use the owner's normal browser.
 
 ## Evidence and revision boundaries
