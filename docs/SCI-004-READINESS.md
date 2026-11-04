@@ -1,5 +1,13 @@
 # SCI-004 real pilot reconciliation and acceptance
 
+## Pilot purpose confirmed — 4 November 2026, 16:06 Africa/Nairobi
+
+Owner explicitly chose to **retain the existing photonic dossier solely for technical SCI-004 acceptance**. Its genuine `selection/1` reject with reason Too technical remains intact. This choice does not select the paper for publication, create a scientific review, approve content or authorize spending. Do not switch to or create an Injection-paper dossier in this slice.
+
+Read-only preflight **13:06:55.875 UTC**: original v1 dossier is not stale; model accept remains the sole scientific review, four decisions missing, no approved final Brief. Gemini readiness **13:06:56.672 UTC**: declared project gen-lang-client-0531547795, valid model/card, key missing, no November ledger, metadata/generation calls=0. No user records changed by this checkpoint.
+
+Next: owner reviews amplitude, phase and both controls using the original located evidence, then personally approves the whole dossier/framing and creates its final Brief after requirements pass. Follow [SCI-004-OWNER-REVIEW.md](SCI-004-OWNER-REVIEW.md). Separately create/configure the private key for the explicitly supplied Google project with billing kept disabled. The agent then repeats read-only gates; ledger setup and any paid text call/billing activation remain subject to the previously stated explicit approval boundary. Technical pilot outputs remain private drafts with separate exact-revision owner content reviews; independent scientific verification remains not_performed. PR11 stays Draft; no Production 013, video or publishing.
+
 ## Latest owner actions — 4 November 2026, 16:04 Africa/Nairobi
 
 Owner supplied **gen-lang-client-0531547795** as the Google project ID. It matches the earlier known ID, so use it as the explicitly declared target; do not claim a separate new project was created. Saved only `GEMINI_PROJECT_ID` in the ignored SCI-004 `.env.local`, preserving the credential field. Metadata readiness at **13:04:14.107 UTC** reports that exact declared project, **missing_key**, metadata requests=0, generation requests=0, billing changes=0, current price card valid. Current Google project display name, actual key association and billing state still require authenticated/owner confirmation. No Google project, key or billing setting was created/changed by the agent.

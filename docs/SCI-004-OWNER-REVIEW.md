@@ -2,6 +2,8 @@
 
 4 November 2026. These are review instructions and the agent's assessment, **not submitted human decisions**. Existing editor may review the agent-authored dossier and its content; no second account or reviewer role is required. This is source-meaning review, not independent scientific verification. Existing author-separation/evidence/revision gates remain unchanged.
 
+Owner confirmed the photonic paper is retained **only for private technical SCI-004 acceptance** after rejecting it for editorial publication as Too technical. Preserve that selection decision. Scientific review and later private draft acceptance still require genuine human decisions; the technical purpose neither bypasses evidence requirements nor authorizes publication or spending.
+
 Open [the local dossier](http://localhost:3000/editorial/research?dossier=81117510-272d-4222-9dcf-f87241a8f771). Use the existing local editor and Mailpit at http://127.0.0.1:56324 if login is needed. The local Auth UUID differs from Production; the same email does not share sessions or decisions. No token/cookie transfer is needed. The SCI-004 worktree dev server has been started on port 3000.
 
 Source: [Kozma and Hughes, arXiv:2610.30098v1](https://arxiv.org/html/2610.30098v1), with the exact stored original accessible through **Descargar PDF privado**. Compare the PDF pages and located evidence before deciding. Original PDF SHA256 is `f14feae673fbebf1b7c75463f37a38756fa75722b079db9f294db9afb6344ad3`; dossier v1 input hash is `69ed66239702dba1c2398c5ebd4ab27dad4606148bc7a71b4edc2239b6e7af62`.
