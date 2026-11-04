@@ -2,6 +2,10 @@
 
 ## Current continuation — 4 November 2026
 
+Latest owner steering: create a **separate Google Cloud project named DobrovAcademy**, then owner creates its key. This supersedes the earlier reuse proposal below; `gen-lang-client-0531547795` must no longer be assumed as the target. New project is **not yet created/verified by the agent**. No authenticated Google project-management tool is connected and the prior Computer Use restriction is not bypassed; the owner's browser was opened to `https://console.cloud.google.com/projectcreate` for manual creation without billing. After creation, owner supplies the nonsecret actual project ID in local `GEMINI_PROJECT_ID` and the key privately in `GEMINI_API_KEY`. Metadata preflight reports the declared project, never pretends models.get proves project association. Existing Google projects/keys are untouched.
+
+Local login delivery: Mailpit envelope metadata confirms a sign-in message for the correct local editor `denis.dobrokhotov@gmail.com`; Gmail delivery is not expected. After an incorrectly opened link, owner must request a fresh link from `http://localhost:3000/login` in the browser/profile that will open Mailpit and the new message. The login Server Action uses the ordinary PKCE cookie flow. An operator-side HTTP OTP request has different verifier state and must not be passed off as a usable owner-browser link; no cookies/verifiers/magic links are extracted or transferred. The local login page was reopened for the owner to request a fresh message. No new resend has been claimed or submitted by the agent.
+
 **PR11 stays Draft; no real output generated.** PROD-002 is no longer a dependency. Owner explicitly remains editor and may perform scientific source-meaning and editorial/content review of agent-authored drafts. Existing role/permissions, author-separation and scientific evidence requirements are unchanged. Independent scientific verification remains **not_performed**; no fake reviewer or human decision has been introduced.
 
 ### Persisted facts, independently rechecked
