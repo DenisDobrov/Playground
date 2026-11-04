@@ -1,5 +1,17 @@
 # SCI-004 real pilot reconciliation and acceptance
 
+## Latest owner actions — 4 November 2026, 16:04 Africa/Nairobi
+
+Owner supplied **gen-lang-client-0531547795** as the Google project ID. It matches the earlier known ID, so use it as the explicitly declared target; do not claim a separate new project was created. Saved only `GEMINI_PROJECT_ID` in the ignored SCI-004 `.env.local`, preserving the credential field. Metadata readiness at **13:04:14.107 UTC** reports that exact declared project, **missing_key**, metadata requests=0, generation requests=0, billing changes=0, current price card valid. Current Google project display name, actual key association and billing state still require authenticated/owner confirmation. No Google project, key or billing setting was created/changed by the agent.
+
+Owner successfully logged into local editorial. A read-only selection audit at **13:04:13.162 UTC** confirms genuine separate `selection/1` decisions by the existing local editor:
+- Selected **Injection is all you need: parallel universal logic in high-rate concatenated self-dual codes**, reason **Hype topic for audience**, saved **13:01:52.584 UTC**.
+- Rejected current photonic pilot **Pure dephasing destroys two-photon amplitude, not nonlinear phase**, reason **Too technical**, saved **13:03:48.231 UTC**.
+
+These have `dossier_id=null`; they are editorial selection decisions, not scientific claim reviews or whole-dossier approval. The read-only scientific audit at **13:03:20.200 UTC** still finds only the original model accept; four reviews, whole approval and final Brief are absent, stale=false. No owner action has been reinterpreted as a scientific review.
+
+**Pilot scope clarification pending:** retain the rejected photonic paper solely as a private technical SCI-004 acceptance test (preserving reject and publication disabled), or prepare a new primary-source dossier for the selected Injection paper. The agent asked the owner to choose and will not override the rejection, start a competing new dossier, manufacture reviews or make paid calls while that choice is pending. Key creation remains an owner action in AI Studio, with billing disabled. Earlier project/pilot instructions below are historical and are superseded by this checkpoint.
+
 ## Current continuation — 4 November 2026
 
 Latest owner steering: create a **separate Google Cloud project named DobrovAcademy**, then owner creates its key. This supersedes the earlier reuse proposal below; `gen-lang-client-0531547795` must no longer be assumed as the target. New project is **not yet created/verified by the agent**. No authenticated Google project-management tool is connected and the prior Computer Use restriction is not bypassed; the owner's browser was opened to `https://console.cloud.google.com/projectcreate` for manual creation without billing. After creation, owner supplies the nonsecret actual project ID in local `GEMINI_PROJECT_ID` and the key privately in `GEMINI_API_KEY`. Metadata preflight reports the declared project, never pretends models.get proves project association. Existing Google projects/keys are untouched.
