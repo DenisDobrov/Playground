@@ -1,5 +1,49 @@
 # SCI-004 real pilot reconciliation and acceptance
 
+## Current continuation — 4 November 2026
+
+**PR11 stays Draft; no real output generated.** PROD-002 is no longer a dependency. Owner explicitly remains editor and may perform scientific source-meaning and editorial/content review of agent-authored drafts. Existing role/permissions, author-separation and scientific evidence requirements are unchanged. Independent scientific verification remains **not_performed**; no fake reviewer or human decision has been introduced.
+
+### Persisted facts, independently rechecked
+
+Local read-only audit **2026-11-04T10:14:33.257Z / 13:14:33 Nairobi** confirms the same dossier/document/hash listed below. Exactly one local dossier revision and one source document exist for this Story. `model` has one genuine accept review, `fefac5fb-8c51-4579-829a-5442def20eaf`, v1, owner local editor `7e8a841d-8ebe-4606-ac8c-3d9027f4daaa`, saved **31 October 13:07:21.125 UTC**, reason “Very good dosier”, effort 10 seconds. It matches the current input hash. amplitude, phase, misleading-control and unsupported-control have **no review history**. No whole-dossier approval, preliminary/final Brief or content draft exists. Gate: accepted=1, missing=4, stale=false, claimsReady=false, ready=false. There is no stale-hash defect to fix or lost-decision history to assert.
+
+Read-only production query **10:20:13.133 UTC** finds neither this dossier UUID nor a dossier for this exact Story. Production has 014 installed but **013 absent**. Thus the actionable pilot is local, not dobrov.org; no cloud migration or account change is needed. Both checkouts' existing local worker/web config target the same 563xx Academy. Original PDF hash on disk matches the stored checksum. Exported evidence IDs/locations match PDF p.1 Model and p.3 Eq.(4)/Fig.3; exact quote matching is not independent verification. All 13 current narrative sections contain no asserted control references.
+
+Detailed owner walkthrough: [SCI-004-OWNER-REVIEW.md](SCI-004-OWNER-REVIEW.md). Local SCI-004 web was started at port 3000 using the existing ignored `.env.local-web`; host login HTTP 200 verified. No browser secrets or review commands were used by the agent.
+
+### Gemini preparation and budget
+
+Keep existing Google project **gen-lang-client-0531547795 / Dobrov Academy**. Do not create a project, change OPS-003 or enable billing. The project's last supplied billing-disabled evidence is from 2 November; this audit lacks authenticated Google project/Billing access and cannot declare that historical observation a fresh live check. No gcloud CLI or appropriate connected project-management tool is available. Owner must verify project/key association and Free/Billing disabled in AI Studio/Cloud Console. A `models.get` response alone cannot establish key-to-project identity or billing status.
+
+Official references rechecked on 4 November: [model](https://ai.google.dev/gemini-api/docs/models/gemini-3-flash-preview), [lifecycle](https://ai.google.dev/gemini-api/docs/deprecations), [structured JSON](https://ai.google.dev/gemini-api/docs/structured-output), [Paid Standard prices](https://ai.google.dev/gemini-api/docs/pricing). Existing candidate **gemini-3-flash-preview** remains documented with structured output/thinking support and no announced shutdown. It is now described as a legacy Flash model; **gemini-3.8-flash** is another documented text candidate, not automatically selected or treated as available to this key. Text article/script generation remains distinct from video/TTS generation.
+
+New card: `config/content-prices.gemini-3-flash-preview.2026-11-04.json`, reviewed **10:18:25 UTC**, expires **5 November 10:18:25 UTC**. Paid Standard text: input $0.50/M, cached input $0.05/M, output including thinking $3/M. This card validates the existing contract and does not authorize dispatch, establish billing, or silently treat free-tier usage as paid/free. At 20,000 input and 16,384 output+thinking ceiling: **59,152 microdollars/output**, **177,456 microdollars ($0.177456) for all three outputs**. This is a reservation calculation, not actual usage/invoice or spending approval.
+
+Prepared ignored SCI-004 worktree `.env.local`: blank GEMINI_API_KEY, model and the reviewed card path; no cloud Supabase credentials copied there. Existing `.env.local-worker` still supplies only local Academy. `git check-ignore` confirms private env files are ignored. Owner should place an existing key from the selected Google project in that local file and never send it through chat. Restrict it to Generative Language API; verify actual key/service-account permissions through the owner's console, without creating broad Owner/Editor grants. Do not add Gemini credentials to Vercel or the synthetic-only Render worker.
+
+New `npm run gemini:readiness` makes only a bounded fixed-host **GET models/{model}**, never generateContent, countTokens, billing mutations, retries or paid calls; headers are private, metadata output is selected/redacted. Current run **10:18:55.865 UTC**: key missing, metadata requests=0, price valid, generation requests=0, billing changes=0. Exact live schema compatibility and project API access remain BLOCKED until credentials are supplied; documented structured output is not a completed live generation-schema test.
+
+Current local ledger check at **10:14:34.786 UTC** reports **no November budget period**. The old October period is insufficient. Before separately authorized dispatch, initialize/verify the current local period using the existing reviewed plan (example: total $200, content $50, per Story $10, per video $25) and recheck available reservations/uncertain operations. Do not initialize an inferred or altered plan during this read-only reconciliation. Alerts and public list prices do not establish a hard project spending cap. Paid generation and any paid billing activation require separate explicit approval after the genuine evidence package is ready.
+
+### Exact next owner actions
+
+1. Review/save amplitude, phase and both controls in the local UI using the original PDF and actual effort/reasons. Reassess model if needed; do not assume its accept is whole-dossier approval.
+2. Only after scientific requirements pass, personally approve the whole dossier/framing and create **nonpreliminary** Brief. The agent will recheck current review IDs and hashes; it does not submit human decisions.
+3. Add the existing project's API key to the prepared ignored local file; confirm the selected project and billing-disabled/Free state. The agent can then verify metadata access with GET only. Do not enable paid billing yet.
+4. Once gate/Brief/API/valid prices/current ledger pass, review the exact ES article + EN article + Spanish scene-script plan and explicitly authorize the bounded text run and any required billing activation separately. No video generation, TTS, MP4 or public publishing is included.
+5. Personally review each immutable generated revision for claim mapping, caveats, quantities, citations and language. These approvals bind exact revisions and never imply publication or independent scientific verification.
+
+No actual draft IDs, model token usage or provider charges are available: generation requests **0**. Future report must include requested/returned model, input/output/thinking/cache tokens, immutable receipt and output IDs/hashes, calculated tariff charges, structural/claim/caveat/language findings and separate human-review states. Unsupported/rejected claims must never enter generated assertions. Any uncertain call retains its ledger reservation and stops automatic replay. Keep PR11 Draft until real-paper acceptance and required tests pass; **do not merge**. Migration 013 remains local only.
+
+### Validation for this continuation
+
+Typecheck passed; all **115 unit tests** passed, including four new metadata-only boundary tests. Demo passed with no paid calls. Production build passed in a disposable network-disabled Docker container, using a writable build user; the first test-harness attempt as the worker image's non-root user could not create `.next`, so that isolated build was repeated with container-local write permission. Worker Dockerfile/runtime user and Production were not changed. The active local review server and database were not stopped or rebuilt.
+
+Final read-only preflight **10:26:52.375 UTC**: accepted=1, missing=4, stale=false, no approved Brief; modelConfigured=true, reviewedPricesConfigured=true, apiKeyConfigured=false, currentBudgetConfigured=false. Gemini readiness **10:26:53.353 UTC** validates the new card but makes zero metadata/generation/token-count calls because key is absent. Local data preserved; no content-generation/review/publication RPC was executed by the agent. Full new-head CI status must be checked separately after push; prior green CI is not current acceptance evidence.
+
+## Historical reconciliation — 31 October 2026
+
 31 October 2026. PR11 remains Draft. **Real-paper generation/acceptance is incomplete; do not merge yet.** No user records, approvals, runtime configuration, credentials or cloud migrations were changed by this audit. Existing implementation is preserved. Only a reviewed price card, this report and a future plan are added.
 
 ## Read-only database reconciliation
