@@ -22,7 +22,7 @@
     "dev": "npm run dev --workspace=@science/web",
     "build": "npm run build --workspace=@science/web",
     "start": "npm run start --workspace=@science/web",
-    "typecheck": "tsc --noEmit && npm run typecheck --workspace=@science/web",
+    "typecheck": "tsc --noEmit && tsc -p tools/demo/tsconfig.json && npm run typecheck --workspace=@science/web",
     "test": "vitest run",
     "demo": "tsx --env-file-if-exists=.env apps/worker/src/demo.ts",
     "worker:once": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local apps/worker/src/once.ts",
