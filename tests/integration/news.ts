@@ -87,6 +87,19 @@ try{
   const changedCampaign=structuredClone(campaign);changedCampaign.campaign!.assets[0].alt+=' revised';
   const campaign2=(await one('select academy.news_import($1,null,$2) id',[batch,changedCampaign])).id;
   assert.notEqual(campaignId,campaign2);assert.equal((await one('select decision from academy.news_state where package_id=$1',[campaign2])).decision,null);
+  const jobCount=(await one('select count(*) from academy.production_jobs')).count;
+  const standaloneSource='Standalone synthetic '+randomUUID(),standaloneHash=createHash('sha256').update(standaloneSource).digest('hex');
+  const standaloneBatch=(await one("insert into academy.news_batches(source_text,period_start,period_end,owner_authorization) values($1,'2026-11-07','2026-11-07',$2) returning id",[standaloneSource,{instructionHash:'c'.repeat(64),ownerId:editor,policy:'news-release/1'}])).id;
+  const standalone=newsFixture(standaloneHash);standalone.period='standalone:2026-11-07';standalone.slug='standalone-'+randomUUID();standalone.eventKey='standalone:'+randomUUID();standalone.en.type=standalone.es.type='analysis';standalone.en.sourcePublicationMonth=standalone.es.sourcePublicationMonth='2026-06';
+  const standaloneId=(await one('select academy.news_import($1,null,$2) id',[standaloneBatch,standalone])).id;
+  await one(batchSql,[standaloneBatch,'c'.repeat(64),standaloneId,randomUUID()]);
+  assert.equal((await one('select academy.news_import($1,null,$2) id',[standaloneBatch,standalone])).id,standaloneId);
+  assert.equal((await one('select count(*) from academy.news_releases where package_id=$1',[standaloneId])).count,'2');
+  const standaloneState=await one('select * from academy.news_state where package_id=$1',[standaloneId]);assert.equal(standaloneState.suggested_video,true);assert.equal(standaloneState.comment,'');
+  await db.query('set local role anon');const publicStandalone=await one('select content from academy.news_releases where package_id=$1 limit 1',[standaloneId]);
+  assert.equal(publicStandalone.content.article.sourcePublicationMonth,'2026-06');assert.equal(publicStandalone.content.period,'standalone:2026-11-07');assert.equal(publicStandalone.content.suggestions,undefined);
+  await db.query('reset role');assert.equal((await one('select count(*) from academy.production_jobs')).count,jobCount,'Video idea must not enqueue work');
+  console.log('PASS standalone: owner instruction, repeated import, two releases, separate research month, no media jobs or public AI rationale.');
   console.log('PASS campaign: exact assets, idempotent import, no inherited approval/outbox/public draft, reviewer denial, stale approval denial, private assets excluded from releases, immutable revisions and reset on change.');
   console.log('PASS NEWS: source hash/import replay, RLS, reviewer denial, immutable snapshots, atomic empty-comment/flags, exact-version approval, stale/replay conflicts, EN/ES public releases, 9 deduplicated deliveries, lease expiry never retries, stale completion denial, partial success/reject, owner overrides, blocked source gate, distinct batch authorization. All fixtures rolled back.');
 }finally{await db.query('rollback').catch(()=>{});await db.end();}

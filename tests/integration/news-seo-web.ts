@@ -10,6 +10,8 @@ const p=newsFixture('a'.repeat(64));
 // Exercise long headings and Spanish accents at the image boundary.
 p.es.title='Prueba sintética de diseño: fuentes, contexto y límites de un resultado científico con un título extenso para comprobar la legibilidad de la tarjeta';
 const releases=(['es','en'] as const).flatMap(language=>[1,2].map(version=>({id:`${language}-${version}`,package_id:`fixture-${version}`,story_id:'synthetic',language,slug:p.slug,published_at:`2026-11-0${version+5}T00:00:00.000Z`,content:{article:p[language],sources:p.sources,period:p.period,section:p.section,verification:p.verification}})));
+const analysis=structuredClone(p);analysis.slug='standalone-analysis-fixture';analysis.period='standalone:2026-11-07';
+for(const language of ['es','en'] as const){analysis[language]={...analysis[language],type:'analysis',sourcePublicationMonth:'2026-06',blocks:[{type:'paragraph',text:analysis[language].paragraphs[0]},{type:'heading',text:'<script>Never executable</script>'},{type:'table',caption:'Conditional scenarios',headers:['Scenario','MW'],rows:[['Synthetic','12']],note:'Scenario, not a measurement',sourceUrl:p.sources[0].url}]};releases.push({id:`analysis-${language}`,package_id:'analysis-fixture',story_id:'analysis-synthetic',language,slug:analysis.slug,published_at:'2026-11-07T14:00:00.000Z',content:{article:analysis[language],sources:analysis.sources,period:analysis.period,section:1,verification:analysis.verification}});}
 let reads=0;
 const api=createServer((req,res)=>{
   if(req.method!=='GET'||!req.url?.startsWith('/rest/v1/news_releases?')){res.writeHead(404).end();return;}
@@ -42,9 +44,14 @@ try{
   assert.equal((await fetch(origin+'/noticias/unpublished-fixture')).status,404);
   const sitemap=await(await fetch(origin+'/sitemap.xml')).text();
   for(const path of ['/','/en','/politica','/en/method','/semana/2026-11-01','/en/week/2026-11-01'])assert.ok(sitemap.includes(`<loc>https://dobrov.org${path}</loc>`));
-  assert.equal((sitemap.match(/<loc>/g)||[]).length,8);assert.ok(!sitemap.includes('/editorial'));
+  assert.equal((sitemap.match(/<loc>/g)||[]).length,10);assert.ok(!sitemap.includes('/editorial'));
   const home=await(await fetch(origin+'/')).text(),digest=await(await fetch(origin+'/semana/2026-11-01')).text();
   assert.notEqual(home.match(/<h1>(.*?)<\/h1>/s)?.[1],digest.match(/<h1>(.*?)<\/h1>/s)?.[1]);
+  assert.ok(home.includes(analysis.slug));assert.ok(!digest.includes(analysis.slug),'Standalone must not rewrite the weekly archive');
+  const analysisHtml=await(await fetch(origin+'/en/news/'+analysis.slug)).text();
+  assert.ok(analysisHtml.includes('<table>'));assert.ok(analysisHtml.includes('2026-06'));assert.ok(analysisHtml.includes('June 2026'));assert.ok(!analysisHtml.includes('<script>Never executable</script>'));
+  const analysisLd=JSON.parse(analysisHtml.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)![1]);
+  assert.equal(analysisLd['@type'],'Article');assert.equal(analysisLd.datePublished,'2026-11-07T14:00:00.000Z');
   const denied=await fetch(origin+'/editorial/news',{redirect:'manual'});assert.equal(denied.status,307);assert.ok(denied.headers.get('location')?.includes('/login'));assert.equal(denied.headers.get('referrer-policy'),'no-referrer');
   console.log(JSON.stringify({passed:true,anonymousFixtureReads:reads,esEnMetadata:true,unchangedArticleDates:true,images1200x630:true,unpublished404:true,sitemap:true,privateDenied:true,productionDataModified:false}));
 }catch(e){console.error(diagnostics);throw e;}finally{child.kill();await once(child,'exit').catch(()=>{});await new Promise<void>(r=>api.close(()=>r()));}
