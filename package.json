@@ -11,6 +11,7 @@
     "node": ">=22.14.0"
   },
   "scripts": {
+    "test:news:integration": "tsx tests/integration/news.ts",
     "gold:export:local": "tsx --env-file=.env.local-worker apps/worker/src/export-gold.ts",
     "sources:ingest:local": "tsx --env-file=.env.local-worker apps/worker/src/ingest.ts",
     "sources:ingest": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local apps/worker/src/ingest.ts",
@@ -29,7 +30,7 @@
     "worker:local": "tsx --env-file=.env.local-worker apps/worker/src/once.ts",
     "worker:enqueue": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local apps/worker/src/enqueue.ts",
     "worker:local:enqueue": "tsx --env-file=.env.local-worker apps/worker/src/enqueue.ts",
-    "video:render": "tsx --env-file-if-exists=.env apps/worker/src/render.ts",
+    "video:render": "node scripts/frozen-production.mjs",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:status": "supabase status",
@@ -51,7 +52,11 @@
     "test:research:integration": "tsx tests/integration/research.ts",
     "research:local:prepare": "tsx --env-file=.env.local-worker apps/worker/src/research-local.ts",
     "research:local:export": "tsx --env-file=.env.local-worker apps/worker/src/research-export.ts",
-    "video:hybrid:preview": "tsx apps/worker/src/hybrid-preview.ts"
+    "video:hybrid:preview": "node scripts/frozen-production.mjs",
+    "content:local": "tsx --env-file-if-exists=.env.local --env-file=.env.local-worker apps/worker/src/content-local.ts",
+    "test:content:integration": "tsx tests/integration/content.ts",
+    "content:local:status": "tsx --env-file-if-exists=.env.local --env-file=.env.local-worker apps/worker/src/content-status.ts",
+    "gemini:readiness": "tsx --env-file-if-exists=.env.local apps/worker/src/gemini-readiness.ts"
   },
   "devDependencies": {
     "@types/node": "26.6.5",

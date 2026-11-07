@@ -11,6 +11,8 @@ import {parsePrimaryMetadata,metadataHash} from '@science/sources';
 import {syntheticPdf} from '../fixtures/pdf';
 import {syntheticResearchDraft,researchText} from '../fixtures/research';
 import {ingestPrimaryPdf} from '../../apps/worker/src/primary-document';
+import {contentArticleFixture} from '../fixtures/content';
+import {newsFixture} from '../fixtures/news';
 
 const origin = 'http://localhost:3000';
 const api = 'http://127.0.0.1:56321';
@@ -25,6 +27,7 @@ const emails = ['editor@academy.example.test', 'reviewer@academy.example.test', 
 const userIds: string[] = [];
 const paginationIds: string[] = [];
 const reviewIds:string[]=[];
+let newsBatch:string|undefined;let newsStory:string|undefined;
 const reviewArxiv=`arxiv:9901.${String(Math.floor(Math.random()*100000)).padStart(5,'0')}`;
 let reviewStory:string|undefined;
 let reviewOwned=false;
@@ -58,7 +61,7 @@ class Browser {
     }
     return response;
   }
-  async post(form: FormData, requestOrigin = origin, path = '/editorial') {
+  async post(form: FormData, requestOrigin = origin, path = '/editorial/intake') {
     return this.request(path, { method: 'POST', body: form, headers: { Origin: requestOrigin } });
   }
 }
@@ -113,7 +116,7 @@ try {
     web!.stderr!.resume(); // Do not echo sessions, callback URLs or Auth errors to CI logs.
   });
   const anon = new Browser();
-  const liveness=await anon.request('/api/health');assert.equal(liveness.status,200);assert.deepEqual(await liveness.json(),{status:'ok',checks:{web:'alive'},publicationEnabled:false});assert.match(liveness.headers.get('cache-control')||'',/no-store/);
+  const liveness=await anon.request('/api/health');assert.equal(liveness.status,200);assert.deepEqual(await liveness.json(),{status:'ok',checks:{web:'alive'},publication:'not_probed'});assert.match(liveness.headers.get('cache-control')||'',/no-store/);
   const anonymousReadiness=await anon.request('/api/readiness');assert.equal(anonymousReadiness.status,401);assert.deepEqual(await anonymousReadiness.json(),{status:'unavailable'});
   for (const path of ['/en','/en/method','/en/stories/reading-ai-results']) {
     const publicPage = await anon.request(path);
@@ -151,10 +154,11 @@ try {
   const callback = verified.headers.get('location'); assert.ok(callback, 'Auth redirects back to app');
   const exchanged = await editor.request(callback);
   assert.equal(new URL(exchanged.headers.get('location')!, origin).pathname, '/editorial', 'PKCE callback signs in');
-  let response = await editor.request('/editorial'); let html = await response.text();
+  assert.equal((await editor.request('/editorial')).headers.get('location'),'/editorial/news','Owner lands in the simple news workflow');
+  let response = await editor.request('/editorial/intake'); let html = await response.text();
   assert.equal(response.status, 200); assert.match(response.headers.get('cache-control') || '', /no-store/);
   editor.expireStoredSession();
-  response = await editor.request('/editorial');
+  response = await editor.request('/editorial/intake');
   assert.equal(response.status, 200, 'Expired stored session is refreshed');
   assert.ok(response.headers.getSetCookie().some(c => c.startsWith('da-academy-auth')), 'Refresh cookies reach the browser');
   editor.expireStoredSession();
@@ -164,13 +168,13 @@ try {
   assert.match((await editor.post(intake)).headers.get('location') || '', /notice=saved/);
   assert.match((await editor.post(intake)).headers.get('location') || '', /notice=saved/);
   assert.equal((await db.query('select count(*)::int as n from academy.sources where canonical_id=$1', [canonical])).rows[0].n, 1);
-  html = await (await editor.request('/editorial')).text();
+  html = await (await editor.request('/editorial/intake')).text();
   const selection = formFrom(html, 'storyId'); selection.set('decision', 'select'); selection.set('reason', 'Primary source selected in HTTP test');
   const csrf = await editor.post(selection, 'https://attacker.example');
   assert.ok(csrf.status >= 400, 'Cross-origin Server Action rejected');
   assert.match((await editor.post(selection)).headers.get('location') || '', /notice=saved/);
   assert.match((await editor.post(selection)).headers.get('location') || '', /notice=saved/, 'Retry is idempotent');
-  const afterReload = await (await editor.request('/editorial')).text();
+  const afterReload = await (await editor.request('/editorial/intake')).text();
   assert.ok(!afterReload.includes('Synthetic HTTP integration fixture'), 'Saved candidate leaves the new inbox');
   const catalogPath = '/editorial/stories?q=' + encodeURIComponent(canonical) + '&status=researching&decision=select&domain=ai';
   const catalog = await (await editor.request(catalogPath)).text();
@@ -206,7 +210,7 @@ try {
   const revised = await (await editor.request('/editorial/stories?q=' + encodeURIComponent(canonical) + '&status=review&decision=revise')).text();
   assert.match(revised, /New evidence requested in HTTP test/);
   assert.match(revised, /Primary source selected in HTTP test/, 'Reanalysis preserves previous reasons');
-  assert.ok(!(await (await editor.request('/editorial')).text()).includes('Synthetic HTTP integration fixture'), 'Reconsideration does not reset new queue');
+  assert.ok(!(await (await editor.request('/editorial/intake')).text()).includes('Synthetic HTTP integration fixture'), 'Reconsideration does not reset new queue');
   const marker = `pagination-${randomUUID()}`;
   paginationIds.push(...(await db.query("insert into academy.stories(slug,title_en,status) select $1||'-'||n,$1||' item '||n,'candidate' from generate_series(1,21) n returning id", [marker])).rows.map(row=>row.id));
   const pageOne = await (await editor.request('/editorial/stories?q=' + marker)).text();
@@ -300,9 +304,61 @@ try {
   const briefForm=formFrom(authorPage,'command','brief');briefForm.set('preliminary','false');assert.match((await editor.post(briefForm,origin,researchPath)).headers.get('location')||'',/notice=blocked/,'Unreviewed dossier cannot produce an approved brief');
   briefForm.set('preliminary','true');assert.match((await editor.post(briefForm,origin,researchPath)).headers.get('location')||'',/notice=saved/);
   const displayed=await (await reviewer.request(researchPath)).text();assert.match(displayed,/PRELIMINARY/);assert.ok(!displayed.includes(reviewSigningKey));
+  // SCI-004: genuine HTTP review forms on synthetic content; no model/provider is called.
+  const syntheticClaims=(await db.query('select id,local_key from academy.claims where dossier_id=$1',[dossierId])).rows;
+  for(const claim of syntheticClaims) {
+    const page=await (await reviewer.request(researchPath)).text(),form=formFrom(page,'claim',claim.id);
+    form.set('decision',claim.local_key==='supported'?'accept':'reject');form.set('reason','Synthetic HTTP reviewer checks toy-model scope only.');form.set('effort','0');
+    assert.match((await reviewer.post(form,origin,researchPath)).headers.get('location')||'',/notice=saved/);
+  }
+  const approve=formFrom(await (await reviewer.request(researchPath)).text(),'command','approve');approve.set('reason','Synthetic HTTP whole dossier and framing acceptance only.');
+  assert.match((await reviewer.post(approve,origin,researchPath)).headers.get('location')||'',/notice=saved/);
+  const finalBrief=formFrom(await (await editor.request(researchPath)).text(),'command','brief');finalBrief.set('preliminary','false');
+  assert.match((await editor.post(finalBrief,origin,researchPath)).headers.get('location')||'',/notice=saved/);
+  const briefId=(await db.query('select id from academy.editorial_briefs where dossier_id=$1 and not preliminary',[dossierId])).rows[0].id;
+  const contentAdmin=createClient(api,status.SERVICE_ROLE_KEY,{db:{schema:'academy'},auth:{persistSession:false,autoRefreshToken:false}});
+  const call=async(name:string,args:Record<string,unknown>)=>{const r=await contentAdmin.rpc(name,args);assert.equal(r.error,null,`${name} must succeed`);return r.data;};
+  const contentInput=await call('content_generation_input',{p_brief:briefId});
+  const op=await call('budget_reserve',{p_key:'http-content:'+randomUUID(),p_month:budgetMonth,p_category:'content',p_estimate:0,p_story:reviewStory,p_video:null,p_tool:'content-article_es',p_tool_version:'1',p_price_version:'synthetic-zero/1',p_input_hash:'a'.repeat(64)});
+  const contentToken=await call('budget_start',{p_id:op.id});
+  const receipt=await call('record_content_receipt',{p_operation:op.id,p_brief:briefId,p_input_hash:contentInput.inputHash,p_kind:'article_es',p_response:{text:JSON.stringify(contentArticleFixture(contentInput)),finishReason:'STOP',receipt:'synthetic-http-provider',usage:{input_tokens:0,output_tokens:0}},p_audit:{requestHash:'a'.repeat(64),priceVersion:'synthetic-zero/1',model:'offline-fixture',promptVersion:'synthetic-http/1'}});
+  await call('budget_settle',{p_id:op.id,p_token:contentToken,p_actual:0,p_usage:{},p_reference:'content-receipt:'+receipt});
+  const contentDraft=await call('save_content_draft',{p_receipt:receipt}),contentPath='/editorial/content?draft='+contentDraft;
+  const contentPage=await (await reviewer.request(contentPath)).text();assert.match(contentPage,/Synthetic article fixture/);assert.match(contentPage,/Output SHA-256/);
+  const contentForm=formFrom(contentPage,'draft',contentDraft);contentForm.set('decision','approve');contentForm.set('reason','Synthetic human reviews language, mapping, quantities and caveats.');
+  for(const key of ['claimAlignment','languageQuality','scientificCaveats','quantitativeValues'])contentForm.set(key,'on');
+  assert.ok((await reviewer.post(contentForm,'https://attacker.example',contentPath)).status>=400);
+  assert.match((await reviewer.post(contentForm,origin,contentPath)).headers.get('location')||'',/notice=saved/);
+  assert.match((await reviewer.post(contentForm,origin,contentPath)).headers.get('location')||'',/notice=saved/,'Content human approval replay is idempotent');
+  contentForm.set('commandId',randomUUID());contentForm.set('hash','f'.repeat(64));
+  assert.match((await reviewer.post(contentForm,origin,contentPath)).headers.get('location')||'',/notice=stale/,'Client cannot approve different bytes');
+  assert.match((await outsider.request(contentPath)).headers.get('location')||'',/notice=access/);
   assert.match((await outsider.request('/editorial/stories')).headers.get('location') || '', /notice=access/);
   assert.match((await outsider.request('/editorial/budget?month=2095-01')).headers.get('location') || '', /notice=access/);
   assert.match((await outsider.request('/editorial')).headers.get('location') || '', /notice=access/);
+  // NEWS-001: exact rendered two-button form, optional comment, owner flags and public DTO.
+  newsBatch=(await db.query("insert into academy.news_batches(source_text,period_start,period_end) values($1,'2026-11-01','2026-11-07') returning id",['HTTP synthetic news '+randomUUID()])).rows[0].id;
+  const newsHash=(await db.query('select source_hash from academy.news_batches where id=$1',[newsBatch])).rows[0].source_hash;
+  const newsContent=newsFixture(newsHash);newsContent.slug='http-synthetic-'+randomUUID();newsContent.eventKey=newsContent.slug;
+  const newsPackage=(await db.query('select academy.news_import($1,null,$2) as id',[newsBatch,newsContent])).rows[0].id;
+  newsStory=(await db.query('select story_id from academy.news_packages where id=$1',[newsPackage])).rows[0].story_id;
+  const newsPath='/editorial/news';
+  const newsPage=await (await editor.request(newsPath)).text();assert.match(newsPage,/Подтвердить и опубликовать/);assert.match(newsPage,/Отвергнуть/);
+  const newsForm=formFrom(newsPage,'package',newsPackage);newsForm.set('decision','approve');newsForm.set('comment','');newsForm.delete('video');newsForm.set('science','on');
+  assert.ok((await editor.post(newsForm,'https://attacker.example',newsPath)).status>=400);
+  assert.ok((await reviewer.post(newsForm,origin,newsPath)).status>=400,'Reviewer cannot write news decisions');
+  assert.equal((await db.query('select decision from academy.news_state where package_id=$1',[newsPackage])).rows[0].decision,null);
+  assert.match((await editor.post(newsForm,origin,newsPath)).headers.get('location')||'',/notice=saved/);
+  assert.match((await editor.post(newsForm,origin,newsPath)).headers.get('location')||'',/notice=saved/,'Exact command replay succeeds');
+  const savedNews=(await db.query('select * from academy.news_state where story_id=$1',[newsStory])).rows[0];
+  assert.equal(savedNews.comment,'');assert.equal(savedNews.suggested_video,false);assert.equal(savedNews.suggested_science,true);assert.equal(savedNews.flags_origin,'owner_set');
+  assert.ok(!(await (await editor.request(newsPath)).text()).includes(`value="${newsPackage}"`),'Decided package leaves new inbox');
+  const allNews=await (await editor.request(newsPath+'?view=all')).text();assert.ok(allNews.includes(`value="${newsPackage}"`));
+  for(const path of ['/noticias/','/en/news/']){const published=await anon.request(path+newsContent.slug);assert.equal(published.status,200);const html=await published.text();assert.match(html,/rel="canonical"/);assert.match(html,/hrefLang="(?:en|es)"/i);assert.ok(!html.includes(newsHash),'Private source provenance is absent from public DTO');}
+  const rejectNews=formFrom(allNews,'package',newsPackage);rejectNews.set('decision','reject');rejectNews.set('comment','');
+  assert.match((await editor.post(rejectNews,origin,newsPath)).headers.get('location')||'',/notice=saved/);
+  assert.equal((await db.query("select count(*)::int n from academy.news_outbox where package_id=$1 and state='cancelled'",[newsPackage])).rows[0].n,9);
+  assert.equal((await anon.request('/en/news/'+newsContent.slug)).status,200,'Reject does not pretend to remove an already released article');
   await db.query('delete from academy.editor_members where user_id=$1', [userIds[1]]);
   assert.match((await reviewer.request('/editorial')).headers.get('location') || '', /notice=access/, 'Membership revocation takes effect immediately');
   const logout = formFrom(afterReload, 'logout');
@@ -315,8 +371,21 @@ try {
   if (userIds.length) {
     // Local fixture cleanup only: privileged transaction bypasses immutability triggers, never production.
     await db.query('begin');await db.query('set local session_replication_role=replica');
+    if(newsBatch){
+      for(const table of ['news_delivery_events','news_outbox','news_releases','news_decisions']){
+        const condition=table==='news_delivery_events'?'outbox_id in (select id from academy.news_outbox where package_id in (select id from academy.news_packages where batch_id=$1))':'package_id in (select id from academy.news_packages where batch_id=$1)';
+        await db.query(`delete from academy.${table} where ${condition}`,[newsBatch]);
+      }
+      await db.query('delete from academy.news_state where story_id=$1',[newsStory]);await db.query('delete from academy.news_packages where batch_id=$1',[newsBatch]);await db.query('delete from academy.news_batches where id=$1',[newsBatch]);await db.query('delete from academy.stories where id=$1',[newsStory]);
+    }
     if(researchDocuments.length) {
       const dossierIds=(await db.query('select id from academy.dossiers where document_id=any($1::uuid[])',[researchDocuments])).rows.map(d=>d.id);
+      const contentArtifacts=(await db.query('select id,article_id,script_id from academy.content_drafts where dossier_id=any($1::uuid[])',[dossierIds])).rows;
+      await db.query('delete from academy.content_reviews where draft_id=any($1::uuid[])',[contentArtifacts.map(d=>d.id)]);
+      await db.query('delete from academy.content_drafts where dossier_id=any($1::uuid[])',[dossierIds]);
+      await db.query('delete from academy.content_receipts where brief_id in (select id from academy.editorial_briefs where dossier_id=any($1::uuid[]))',[dossierIds]);
+      await db.query('delete from academy.articles where id=any($1::uuid[])',[contentArtifacts.map(d=>d.article_id).filter(Boolean)]);
+      await db.query('delete from academy.scripts where id=any($1::uuid[])',[contentArtifacts.map(d=>d.script_id).filter(Boolean)]);
       await db.query('delete from academy.editorial_briefs where dossier_id=any($1::uuid[])',[dossierIds]);await db.query('delete from academy.scientific_reviews where dossier_id=any($1::uuid[])',[dossierIds]);await db.query('delete from academy.editorial_decisions where dossier_id=any($1::uuid[])',[dossierIds]);
       await db.query('delete from academy.claim_evidence where claim_id in (select id from academy.claims where dossier_id=any($1::uuid[]))',[dossierIds]);
       for(const table of ['claims','evidence']) await db.query(`delete from academy.${table} where dossier_id=any($1::uuid[])`,[dossierIds]);

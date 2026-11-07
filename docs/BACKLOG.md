@@ -1,5 +1,9 @@
 # Backlog агентной реализации
 
+## Текущий приоритет — NEWS-001 (7 ноября 2026)
+
+Довести проверенную подборку 1–7 ноября до реальных EN/ES URL и доступных проектных каналов. Простая карточка: approve/publish или reject, необязательный комментарий и два флага идей. Контракт, миграция, проверки и rollback: [NEWS-001](NEWS-001.md). Видео/TTS/scripts/Shorts и собственные рукописи заморожены; старое досье не prerequisite. Нижеследующие research/video задачи остаются историческим backlog, а не текущим планом.
+
 **Актуальный порядок ближайших трёх спринтов — `SPRINTS.md` (22.10.2026).** Ниже сохранён каталог задач с прежними S-идентификаторами, а не календарный порядок. Видео пилота 1×6–8 минут; 8–12 — цель масштабирования. Auth/manual inbox реализованы, cloud 004/membership установлены. Локальный source/EN срез и оставшиеся ограничения описаны в `INGESTION.md`. Read-only retention входит в MVP, автоматическая оптимизация — после него.
 
 Каждую задачу выполнять отдельной сессией с чтением AGENTS.md и HLD. Сначала контракт и критерий готовности, затем реализация и проверка. Ниже задания для будущих агентов разработки; в этой сессии дополнительные агенты не запускались.
@@ -110,3 +114,7 @@ arXiv metadata verification, Crossref DOI lookup, reviewed DOI/arXiv alias linki
 ## VIDEO-001 — 31 октября 2026
 
 Реализован технический срез scene/asset/voice/consent contracts и bounded 2D FFmpeg fallback с checksum cache. Видео допускает точные одобренные dossier + brief без web-статьи; прежний published article path сохранён. Это не полный видеопилот, paid adapters/Remotion/publisher отсутствуют. Границы, проверки и следующие срезы — [VIDEO-HLD.md](VIDEO-HLD.md).
+
+## SCI-004 — content drafts, 31 октября 2026
+
+Локальная реализация exact approved dossier/brief → отдельные ES/EN article drafts и ES scene-script: SCI-004.md. Immutable receipts/revisions, metered Gemini adapter, reserve/start/settle, claim/caveat mapping и human review добавлены; migration 013 только локальная. Реальный pilot пока не прошёл acceptance: отсутствуют четыре human claim decisions/whole-dossier approval/final brief и Gemini credentials/model/prices. Не считать synthetic tests реальным контентом. Следующий шаг — закрыть эти prerequisites и выполнить реальный тройной прогон с отчётом usage/cost; никаких TTS/render/upload или cloud install в этом срезе.

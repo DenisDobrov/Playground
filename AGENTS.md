@@ -1,5 +1,9 @@
 # Science portal — instructions for implementation agents
 
+## Current owner decision — NEWS-001, 7 November 2026
+
+Read docs/NEWS-001.md first for the current vertical slice. News-release/1 uses one owner decision for exact EN/ES and channel texts after source checking; no fake scientific reviews or independent-verification claims. The first 17-story release has an explicit owner batch instruction. New articles never reuse synthetic demo content or the rejected photonic pilot. News scope includes all topics in the November review, with biomedical reporting limited to research news without treatment advice or doses. Freeze script/TTS/video/Shorts and original manuscript preparation/submission; flags collect ideas only. Keep useful text generation, immutable versions, mappings, ledger and receipts from PR11; PR18 is paused and closed without merge. Historical research/video invariants below remain for that separate frozen mode, not as additional approvals on standard news. Source checking, Auth/RLS, history, idempotency, cost controls and private data protections remain mandatory.
+
 Read `docs/HLD.md`, `docs/IMPLEMENTATION.md` and the relevant task in `docs/BACKLOG.md` before changing architecture.
 
 ## Product invariants
@@ -42,3 +46,8 @@ SCI-001 final review: follow-up migration 010 retains installed 009, scopes unda
 
 ## SCI-003 boundaries
 Read docs/SCI-003.md before extending scientific content. Reuse primary_documents, dossiers/claims/evidence and persisted editorial_decisions. Quote/page matching is mechanical extraction, not scientific truth. Source-meaning reviews and whole-dossier framing approval require an independent human; never fabricate the real pilot review or set claims.status=verified from a citation. Reviewer writes are scoped to scientific reviews/approvals; all prior intake/selection/ledger restrictions stay. Agent dossier save/operator PDF RPCs are worker-only and never impersonate a human. Original documents/evidence/revisions and review history are immutable. New input/review invalidates the research gate; briefs require current review IDs and whole-dossier approval. Abstract-only limits and reuse rights propagate. Local migration 012 only; no cloud/production changes without explicit approval. Paid models/articles/video remain unimplemented in this slice.
+
+## SCI-004 boundaries
+Read docs/SCI-004.md before changing content generation/review. Use persisted exact research approval/brief inputs, never client extraction JSON. Source-meaning review is not independent verification. New drafts use immutable existing articles/scripts plus worker receipts and scoped human content reviews. All paid calls require reviewed prices and ledger reservation/settlement; missing/ambiguous usage retains funds and blocks automatic replay. Local 013 only. Real-paper generation remains pending genuine human acceptance and configured credentials/prices; never fabricate these to satisfy a demo.
+
+Owner decision, 4 November 2026: the sole operator remains editor and may perform both scientific source-meaning and editorial/content review of agent-authored drafts. Do not add reviewer accounts or change roles. Distinguish this owner review from independent scientific verification, which remains not_performed unless actually performed. Existing author-separation, evidence, exact-revision and publication gates remain unchanged. Never submit human decisions/whole-dossier approval on the owner's behalf.

@@ -1,5 +1,9 @@
 # Реализация и локальное окружение
 
+## NEWS-001 — приоритет от 7 ноября 2026
+
+Текущая реализация: [NEWS-001](NEWS-001.md). Стандартные новости используют единое решение `news-release/1`; старые scientific/dossier/language gates не подделываются и не блокируют этот режим. Видео и собственные рукописи заморожены. Ниже сохранена история предыдущих срезов, а не текущая очередь приоритетов.
+
 ## Обновление 22 октября 2026
 
 PR5 слит. Текущий production-budget срез добавляет ledger 008, read-only экран бюджета, local metadata brief, planning и recovery. Приоритет — news/content/voice/video tooling; paid research/verifier benchmark отложены. Команды и ограничения — `PRODUCTION-BUDGET.md`.
@@ -97,3 +101,7 @@ OAuth YouTube и Supabase Google login — разные решения: поль
 ## VIDEO-001 — 31 октября 2026
 
 Реализован технический срез scene/asset/voice/consent contracts и bounded 2D FFmpeg fallback с checksum cache. Видео допускает точные одобренные dossier + brief без web-статьи; прежний published article path сохранён. Это не полный видеопилот, paid adapters/Remotion/publisher отсутствуют. Границы, проверки и следующие срезы — [VIDEO-HLD.md](VIDEO-HLD.md).
+
+## SCI-004 — content drafts, 31 октября 2026
+
+Локальная реализация exact approved dossier/brief → отдельные ES/EN article drafts и ES scene-script: SCI-004.md. Immutable receipts/revisions, metered Gemini adapter, reserve/start/settle, claim/caveat mapping и human review добавлены; migration 013 только локальная. Реальный pilot пока не прошёл acceptance: отсутствуют четыре human claim decisions/whole-dossier approval/final brief и Gemini credentials/model/prices. Не считать synthetic tests реальным контентом. Следующий шаг — закрыть эти prerequisites и выполнить реальный тройной прогон с отчётом usage/cost; никаких TTS/render/upload или cloud install в этом срезе.
