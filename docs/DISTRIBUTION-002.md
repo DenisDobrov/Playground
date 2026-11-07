@@ -4,6 +4,23 @@
 
 **Continuation after PR20 merge:** the three drafts are now imported into production and awaiting the owner's existing two-button review. Search Console processed the submitted sitemap; free Hobby Web Analytics is enabled in the project, with collection/SEO code in the next reviewed web change. Exact timestamps, package IDs and validation: [SEO-001](SEO-001.md). The audit/dry-run statements below describe the earlier baseline.
 
+## Telegram and X delivery completed — 7 November, 12:16 UTC
+
+The owner explicitly resumed delivery of the original approved weekly digest. Before either send, the live Telegram channel contained only its creation/photo service messages and the X profile showed zero posts. Read-only outbox inspections at 12:04:45 and 12:04:59 UTC found no published, sending or uncertain deliveries and no remote links. Per channel, 14 original entries were blocked and three superseded original entries were cancelled, all marked `OWNER_DEFERRED`.
+
+Immutable original decisions and both public language snapshots were checked against the original approved manifest. Items 2, 7 and 16 now have separately owner-approved campaigns; their article/source content remains identical to the original release. This operation delivered only the original digest and did not send campaigns or submit owner decisions. A current approved original package anchored each server-side delivery claim, with the renewed owner instruction and exact 17 covered package IDs retained in append-only evidence.
+
+| Channel | Actual publication | Outbox reconciliation |
+|---|---|---|
+| Telegram | [Dobrov Academy digest](https://t.me/dobrovacademy/3), message `3`, 12:10 UTC | 17 original packages, 12:11:43 UTC |
+| X | [Dobrov Academy digest](https://x.com/DobrovAcademy/status/2119040781340336493), post `2119040781340336493`, 12:14 UTC | 17 original packages, 12:15:33 UTC |
+
+Each send was performed once through the existing authorized browser session. The actual Telegram link was obtained with Copy Message Link and verified on its public page. X showed one post and its actual status permalink; it also displayed a new-account discoverability notice, which is not a guarantee of broad reach.
+
+Read-only verification at **2026-11-07T12:16:35.053Z: PASS**. For each channel: all 17 original entries are `published` with one shared verified remote ID/link, one `browser_prepared` event and 17 reconciliation events. No unresolved sending/uncertain entry remains in this original scope. Private receipts and screenshots are in `artifacts/distribution-002/*-resume-*.json`, `digest-resume-verification.json`, `telegram-published-20261107.png` and `x-published-20261107.png`.
+
+This supersedes the Telegram/X deferral below. No web deployment, credentials, roles, Auth, migrations, subscriptions, paid calls or video settings were changed. The production web revision remains `41697c5159bd758c208636599aab0e0a319c1e3f` from the separately approved PR21 rollout; historical deployment evidence below is retained.
+
 ## Production evidence
 
 Web revision `9a0ef92c13e07d2c27e62338469cab2c8854582d`, deployment `dpl_3CYMptXnLuAK34fE1uRFqJgUWmmz` remains unchanged during delivery/audit. Existing account roles and links are unchanged.
