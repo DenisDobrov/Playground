@@ -1,4 +1,5 @@
 import { z } from 'zod';
+export * from './news';
 export * from './releases';
 export * from './localized-article';
 export * from './research';

@@ -6,7 +6,7 @@ import '../brand.css';
 import '../editorial.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'),
+  metadataBase: new URL('https://dobrov.org'),
   title: { default: `${brand.name} · Ciencia con evidencia`, template: `%s · ${brand.name}` },
   description: brand.descriptionEs,
   applicationName: brand.name,

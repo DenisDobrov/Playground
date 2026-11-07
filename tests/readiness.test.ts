@@ -13,8 +13,8 @@ function client(role:string|null='editor',probeError=false) {
  factory.mockResolvedValue(c as any);return c;
 }
 describe('privacy-safe liveness and readiness',()=>{
- it('keeps process liveness independent from DB/worker, uncached and publishing disabled',async()=>{
-  const response=live();expect(response.status).toBe(200);expect(await response.json()).toEqual({status:'ok',checks:{web:'alive'},publicationEnabled:false});expect(response.headers.get('cache-control')).toContain('no-store');expect(factory).not.toHaveBeenCalled();
+ it('keeps process liveness independent from DB/worker and publication state',async()=>{
+  const response=live();expect(response.status).toBe(200);expect(await response.json()).toEqual({status:'ok',checks:{web:'alive'},publication:'not_probed'});expect(response.headers.get('cache-control')).toContain('no-store');expect(factory).not.toHaveBeenCalled();
  });
  it('returns generic unavailable when live configuration is disabled or invalid',async()=>{
   enabled.mockReturnValue(false);let response=await ready();expect(response.status).toBe(503);expect(await response.json()).toEqual({status:'unavailable'});
@@ -28,7 +28,7 @@ describe('privacy-safe liveness and readiness',()=>{
   for(const [status,expected] of [[401,401],[503,503],[0,503]]) {const c=client();c.auth.getUser.mockResolvedValue({data:{user:null},error:{status,message:'PRIVATE AUTH DETAILS'}} as any);const response=await ready();expect(response.status).toBe(expected);expect(await response.text()).not.toContain('PRIVATE');}
  });
  it.each(['editor','reviewer'])('checks actual %s permissions and refuses green status for an unverified worker',async role=>{
-  const c=client(role),response=await ready(),body=await response.json();expect(factory).toHaveBeenCalledWith(true,5000);expect(c.from).toHaveBeenCalledTimes(6);expect(response.status).toBe(503);expect(body).toMatchObject({status:'degraded',checks:{web:'alive',editorialDatabase:'ready',worker:'unverified'},publicationEnabled:false});expect(response.headers.get('cache-control')).toContain('no-store');expect(response.headers.get('vary')).toBe('Cookie');expect(response.headers.get('retry-after')).toBe('60');
+  const c=client(role),response=await ready(),body=await response.json();expect(factory).toHaveBeenCalledWith(true,5000);expect(c.from).toHaveBeenCalledTimes(7);expect(response.status).toBe(503);expect(body).toMatchObject({status:'degraded',checks:{web:'alive',editorialDatabase:'ready',worker:'unverified'},publication:{news:'empty',scientificResearch:'disabled',video:'frozen'}});expect(response.headers.get('cache-control')).toContain('no-store');expect(response.headers.get('vary')).toBe('Cookie');expect(response.headers.get('retry-after')).toBe('60');
  });
  it('marks missing schema/grants/unreachable DB unavailable, never returns upstream detail',async()=>{
   client('editor',true);const response=await ready();expect(response.status).toBe(503);expect(await response.json()).toMatchObject({status:'unavailable',checks:{editorialDatabase:'unavailable'}});

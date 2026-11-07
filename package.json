@@ -11,6 +11,7 @@
     "node": ">=22.14.0"
   },
   "scripts": {
+    "test:news:integration": "tsx tests/integration/news.ts",
     "gold:export:local": "tsx --env-file=.env.local-worker apps/worker/src/export-gold.ts",
     "sources:ingest:local": "tsx --env-file=.env.local-worker apps/worker/src/ingest.ts",
     "sources:ingest": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local apps/worker/src/ingest.ts",

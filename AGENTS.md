@@ -1,5 +1,9 @@
 # Science portal — instructions for implementation agents
 
+## Current owner decision — NEWS-001, 7 November 2026
+
+Read docs/NEWS-001.md first for the current vertical slice. News-release/1 uses one owner decision for exact EN/ES and channel texts after source checking; no fake scientific reviews or independent-verification claims. The first 17-story release has an explicit owner batch instruction. New articles never reuse synthetic demo content or the rejected photonic pilot. News scope includes all topics in the November review, with biomedical reporting limited to research news without treatment advice or doses. Freeze script/TTS/video/Shorts and original manuscript preparation/submission; flags collect ideas only. Keep useful text generation, immutable versions, mappings, ledger and receipts from PR11; PR18 is paused and closed without merge. Historical research/video invariants below remain for that separate frozen mode, not as additional approvals on standard news. Source checking, Auth/RLS, history, idempotency, cost controls and private data protections remain mandatory.
+
 Read `docs/HLD.md`, `docs/IMPLEMENTATION.md` and the relevant task in `docs/BACKLOG.md` before changing architecture.
 
 ## Product invariants

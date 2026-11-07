@@ -22,9 +22,10 @@ export async function GET() {
   if(!membership.data||!['editor','reviewer'].includes(membership.data.role))return unavailable(403);
   const probes=await Promise.all(['editorial_catalog','production_jobs','metadata_snapshots','primary_documents','editorial_briefs'].map(table=>client.from(table).select('id').limit(1)));
   const editorialReady=probes.every(p=>!p.error);
+  const news=await client.from('news_releases').select('id').limit(1);
   // There is no deployed worker heartbeat/attestation contract. A successful web probe or old job
   // completion must never manufacture worker readiness. Add verified evidence before changing this.
-  return Response.json({status:editorialReady?'degraded':'unavailable',checks:{web:'alive',editorialDatabase:editorialReady?'ready':'unavailable',worker:'unverified'},publicationEnabled:false,checkedAt:new Date().toISOString()},
+  return Response.json({status:editorialReady?'degraded':'unavailable',checks:{web:'alive',editorialDatabase:editorialReady?'ready':'unavailable',worker:'unverified'},publication:{news:news.error?'unavailable':news.data?.length?'published':'empty',scientificResearch:'disabled',video:'frozen'},checkedAt:new Date().toISOString()},
    {status:503,headers:{...headers,'Retry-After':'60'}});
  } catch {
   // No upstream error, schema name, project URL, key, identity, job state or internal log escapes.

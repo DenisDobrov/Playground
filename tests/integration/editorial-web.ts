@@ -58,7 +58,7 @@ class Browser {
     }
     return response;
   }
-  async post(form: FormData, requestOrigin = origin, path = '/editorial') {
+  async post(form: FormData, requestOrigin = origin, path = '/editorial/intake') {
     return this.request(path, { method: 'POST', body: form, headers: { Origin: requestOrigin } });
   }
 }
@@ -113,7 +113,7 @@ try {
     web!.stderr!.resume(); // Do not echo sessions, callback URLs or Auth errors to CI logs.
   });
   const anon = new Browser();
-  const liveness=await anon.request('/api/health');assert.equal(liveness.status,200);assert.deepEqual(await liveness.json(),{status:'ok',checks:{web:'alive'},publicationEnabled:false});assert.match(liveness.headers.get('cache-control')||'',/no-store/);
+  const liveness=await anon.request('/api/health');assert.equal(liveness.status,200);assert.deepEqual(await liveness.json(),{status:'ok',checks:{web:'alive'},publication:'not_probed'});assert.match(liveness.headers.get('cache-control')||'',/no-store/);
   const anonymousReadiness=await anon.request('/api/readiness');assert.equal(anonymousReadiness.status,401);assert.deepEqual(await anonymousReadiness.json(),{status:'unavailable'});
   for (const path of ['/en','/en/method','/en/stories/reading-ai-results']) {
     const publicPage = await anon.request(path);
@@ -151,10 +151,11 @@ try {
   const callback = verified.headers.get('location'); assert.ok(callback, 'Auth redirects back to app');
   const exchanged = await editor.request(callback);
   assert.equal(new URL(exchanged.headers.get('location')!, origin).pathname, '/editorial', 'PKCE callback signs in');
-  let response = await editor.request('/editorial'); let html = await response.text();
+  assert.equal((await editor.request('/editorial')).headers.get('location'),'/editorial/news','Owner lands in the simple news workflow');
+  let response = await editor.request('/editorial/intake'); let html = await response.text();
   assert.equal(response.status, 200); assert.match(response.headers.get('cache-control') || '', /no-store/);
   editor.expireStoredSession();
-  response = await editor.request('/editorial');
+  response = await editor.request('/editorial/intake');
   assert.equal(response.status, 200, 'Expired stored session is refreshed');
   assert.ok(response.headers.getSetCookie().some(c => c.startsWith('da-academy-auth')), 'Refresh cookies reach the browser');
   editor.expireStoredSession();
@@ -164,13 +165,13 @@ try {
   assert.match((await editor.post(intake)).headers.get('location') || '', /notice=saved/);
   assert.match((await editor.post(intake)).headers.get('location') || '', /notice=saved/);
   assert.equal((await db.query('select count(*)::int as n from academy.sources where canonical_id=$1', [canonical])).rows[0].n, 1);
-  html = await (await editor.request('/editorial')).text();
+  html = await (await editor.request('/editorial/intake')).text();
   const selection = formFrom(html, 'storyId'); selection.set('decision', 'select'); selection.set('reason', 'Primary source selected in HTTP test');
   const csrf = await editor.post(selection, 'https://attacker.example');
   assert.ok(csrf.status >= 400, 'Cross-origin Server Action rejected');
   assert.match((await editor.post(selection)).headers.get('location') || '', /notice=saved/);
   assert.match((await editor.post(selection)).headers.get('location') || '', /notice=saved/, 'Retry is idempotent');
-  const afterReload = await (await editor.request('/editorial')).text();
+  const afterReload = await (await editor.request('/editorial/intake')).text();
   assert.ok(!afterReload.includes('Synthetic HTTP integration fixture'), 'Saved candidate leaves the new inbox');
   const catalogPath = '/editorial/stories?q=' + encodeURIComponent(canonical) + '&status=researching&decision=select&domain=ai';
   const catalog = await (await editor.request(catalogPath)).text();
@@ -206,7 +207,7 @@ try {
   const revised = await (await editor.request('/editorial/stories?q=' + encodeURIComponent(canonical) + '&status=review&decision=revise')).text();
   assert.match(revised, /New evidence requested in HTTP test/);
   assert.match(revised, /Primary source selected in HTTP test/, 'Reanalysis preserves previous reasons');
-  assert.ok(!(await (await editor.request('/editorial')).text()).includes('Synthetic HTTP integration fixture'), 'Reconsideration does not reset new queue');
+  assert.ok(!(await (await editor.request('/editorial/intake')).text()).includes('Synthetic HTTP integration fixture'), 'Reconsideration does not reset new queue');
   const marker = `pagination-${randomUUID()}`;
   paginationIds.push(...(await db.query("insert into academy.stories(slug,title_en,status) select $1||'-'||n,$1||' item '||n,'candidate' from generate_series(1,21) n returning id", [marker])).rows.map(row=>row.id));
   const pageOne = await (await editor.request('/editorial/stories?q=' + marker)).text();

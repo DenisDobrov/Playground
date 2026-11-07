@@ -1,5 +1,9 @@
 # Реализация и локальное окружение
 
+## NEWS-001 — приоритет от 7 ноября 2026
+
+Текущая реализация: [NEWS-001](NEWS-001.md). Стандартные новости используют единое решение `news-release/1`; старые scientific/dossier/language gates не подделываются и не блокируют этот режим. Видео и собственные рукописи заморожены. Ниже сохранена история предыдущих срезов, а не текущая очередь приоритетов.
+
 ## Обновление 22 октября 2026
 
 PR5 слит. Текущий production-budget срез добавляет ledger 008, read-only экран бюджета, local metadata brief, planning и recovery. Приоритет — news/content/voice/video tooling; paid research/verifier benchmark отложены. Команды и ограничения — `PRODUCTION-BUDGET.md`.
