@@ -1,0 +1,20 @@
+import {it,expect} from 'vitest';
+import {validateCampaign} from '../scripts/news-campaign-validation';
+import {newsPackageSchema} from '../packages/core/src/news';
+import {newsFixture} from './fixtures/news';
+import {campaignFixture} from './fixtures/news-campaign';
+it('binds real PNG bytes to immutable campaign hashes without changing the released science',()=>{
+ const base=newsFixture('a'.repeat(64)),p=campaignFixture(base);
+ expect(validateCampaign(p,base)).toEqual(p);
+ const wrongHash=structuredClone(p);wrongHash.campaign!.assets[0].sha256='0'.repeat(64);
+ expect(()=>validateCampaign(wrongHash,base)).toThrow('CAMPAIGN_ASSET_HASH_MISMATCH');
+ expect(()=>validateCampaign({...p,en:{...p.en,limitations:'Unsupported assertion'}},base)).toThrow('CAMPAIGN_MUST_PRESERVE_PUBLISHED_ARTICLE');
+ const remote=structuredClone(p);remote.campaign!.assets[0].dataUrl='https://example.org/tracker.png';
+ expect(newsPackageSchema.safeParse(remote).success).toBe(false);
+ const script=structuredClone(p);script.campaign!.assets[0].dataUrl='data:image/svg+xml;base64,PHN2Zz4=';
+ expect(newsPackageSchema.safeParse(script).success).toBe(false);
+ const duplicate=structuredClone(p);duplicate.campaign!.assets[1].language='es';
+ expect(newsPackageSchema.safeParse(duplicate).success).toBe(false);
+ expect(newsPackageSchema.safeParse({...p,channelTexts:{facebook:p.channelTexts.facebook}}).success).toBe(true);
+ expect(newsPackageSchema.safeParse({...p,channelTexts:{}}).success).toBe(false);
+});
