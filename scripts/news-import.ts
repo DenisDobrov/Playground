@@ -32,7 +32,8 @@ if(inserted.error||!inserted.data)throw new Error('Batch save failed');
 const batch=inserted.data.id;
 for(const p of packages){
   // Exact DOI/arXiv matches only, never title/author similarity. Conflicting stories are held.
-  const identities=p.sources.flatMap(s=>{try{const u=new URL(s.url);return ['doi.org','arxiv.org'].includes(u.hostname)?[canonicalSourceId(s.url)]:[];}catch{return [];}});
+  const primary=p.sources.find(s=>['doi.org','arxiv.org'].includes(new URL(s.url).hostname))||p.sources[0];
+  const identities=[['doi.org','arxiv.org'].includes(new URL(primary.url).hostname)?canonicalSourceId(primary.url):'url:'+new URL(primary.url).href];
   const sources=identities.length?await client.from('sources').select('id').in('canonical_id',identities):{data:[],error:null};
   const aliases=identities.length?await client.from('source_aliases').select('source_id').in('alias',identities):{data:[],error:null};
   if(sources.error||aliases.error)throw new Error('Source identity lookup failed');
@@ -41,9 +42,26 @@ for(const p of packages){
   if(matched.error)throw new Error('Story identity lookup failed');
   const stories=[...new Set((matched.data||[]).map(s=>s.story_id))];
   if(stories.length>1){console.log(JSON.stringify({section:p.section,status:'blocked',reason:'EXISTING_IDENTITY_CONFLICT'}));continue;}
-  const imported=await client.rpc('news_import',{p_batch:batch,p_story:stories[0]||null,p_content:p});
+  let story=stories[0]||null;
+  if(story){
+    const prior=await client.from('news_packages').select('event_key').eq('story_id',story);
+    if(prior.error)throw new Error('Event identity lookup failed');
+    if(prior.data.length&&!prior.data.some(e=>e.event_key===p.eventKey))story=null;
+  }
+  const imported=await client.rpc('news_import',{p_batch:batch,p_story:story,p_content:p});
   if(imported.error)throw new Error(`News import failed at section ${p.section}: ${imported.error.code}`);
   const pid=imported.data;
+  const saved=await client.from('news_packages').select('story_id').eq('id',pid).single();
+  if(saved.error)throw new Error('Saved story unavailable');
+  // Reuse exact identities; new source metadata remains a source-checked summary, never a scientific approval.
+  if(!sourceIds.length){
+    const created=await client.from('sources').upsert({canonical_id:identities[0],url:primary.url,title_en:primary.title,kind:primary.kind,metadata:{origin:'news-release/1',access:primary.access,checkedAt:primary.checkedAt,independentScientificVerification:'not_performed'}},{onConflict:'canonical_id',ignoreDuplicates:true});
+    if(created.error)throw new Error('Source save failed');
+    const source=await client.from('sources').select('id').eq('canonical_id',identities[0]).single();
+    if(source.error)throw new Error('Saved source unavailable');sourceIds.push(source.data.id);
+  }
+  const linked=await client.from('story_sources').upsert(sourceIds.map(id=>({story_id:saved.data.story_id,source_id:id})),{onConflict:'story_id,source_id',ignoreDuplicates:true});
+  if(linked.error)throw new Error('Source link failed');
   if(args.includes('--approve-batch')&&p.verification.status==='checked_summary'){
     const state=await client.from('news_state').select('version,decision,package_id').eq('package_id',pid).maybeSingle();
     if(state.error)throw new Error('Approval state unavailable');

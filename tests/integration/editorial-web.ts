@@ -12,6 +12,7 @@ import {syntheticPdf} from '../fixtures/pdf';
 import {syntheticResearchDraft,researchText} from '../fixtures/research';
 import {ingestPrimaryPdf} from '../../apps/worker/src/primary-document';
 import {contentArticleFixture} from '../fixtures/content';
+import {newsFixture} from '../fixtures/news';
 
 const origin = 'http://localhost:3000';
 const api = 'http://127.0.0.1:56321';
@@ -26,6 +27,7 @@ const emails = ['editor@academy.example.test', 'reviewer@academy.example.test', 
 const userIds: string[] = [];
 const paginationIds: string[] = [];
 const reviewIds:string[]=[];
+let newsBatch:string|undefined;let newsStory:string|undefined;
 const reviewArxiv=`arxiv:9901.${String(Math.floor(Math.random()*100000)).padStart(5,'0')}`;
 let reviewStory:string|undefined;
 let reviewOwned=false;
@@ -334,6 +336,29 @@ try {
   assert.match((await outsider.request('/editorial/stories')).headers.get('location') || '', /notice=access/);
   assert.match((await outsider.request('/editorial/budget?month=2095-01')).headers.get('location') || '', /notice=access/);
   assert.match((await outsider.request('/editorial')).headers.get('location') || '', /notice=access/);
+  // NEWS-001: exact rendered two-button form, optional comment, owner flags and public DTO.
+  newsBatch=(await db.query("insert into academy.news_batches(source_text,period_start,period_end) values($1,'2026-11-01','2026-11-07') returning id",['HTTP synthetic news '+randomUUID()])).rows[0].id;
+  const newsHash=(await db.query('select source_hash from academy.news_batches where id=$1',[newsBatch])).rows[0].source_hash;
+  const newsContent=newsFixture(newsHash);newsContent.slug='http-synthetic-'+randomUUID();newsContent.eventKey=newsContent.slug;
+  const newsPackage=(await db.query('select academy.news_import($1,null,$2) as id',[newsBatch,newsContent])).rows[0].id;
+  newsStory=(await db.query('select story_id from academy.news_packages where id=$1',[newsPackage])).rows[0].story_id;
+  const newsPath='/editorial/news';
+  const newsPage=await (await editor.request(newsPath)).text();assert.match(newsPage,/Подтвердить и опубликовать/);assert.match(newsPage,/Отвергнуть/);
+  const newsForm=formFrom(newsPage,'package',newsPackage);newsForm.set('decision','approve');newsForm.set('comment','');newsForm.delete('video');newsForm.set('science','on');
+  assert.ok((await editor.post(newsForm,'https://attacker.example',newsPath)).status>=400);
+  assert.ok((await reviewer.post(newsForm,origin,newsPath)).status>=400,'Reviewer cannot write news decisions');
+  assert.equal((await db.query('select decision from academy.news_state where package_id=$1',[newsPackage])).rows[0].decision,null);
+  assert.match((await editor.post(newsForm,origin,newsPath)).headers.get('location')||'',/notice=saved/);
+  assert.match((await editor.post(newsForm,origin,newsPath)).headers.get('location')||'',/notice=saved/,'Exact command replay succeeds');
+  const savedNews=(await db.query('select * from academy.news_state where story_id=$1',[newsStory])).rows[0];
+  assert.equal(savedNews.comment,'');assert.equal(savedNews.suggested_video,false);assert.equal(savedNews.suggested_science,true);assert.equal(savedNews.flags_origin,'owner_set');
+  assert.ok(!(await (await editor.request(newsPath)).text()).includes(`value="${newsPackage}"`),'Decided package leaves new inbox');
+  const allNews=await (await editor.request(newsPath+'?view=all')).text();assert.ok(allNews.includes(`value="${newsPackage}"`));
+  for(const path of ['/noticias/','/en/news/']){const published=await anon.request(path+newsContent.slug);assert.equal(published.status,200);const html=await published.text();assert.match(html,/rel="canonical"/);assert.match(html,/hrefLang="(?:en|es)"/i);assert.ok(!html.includes(newsHash),'Private source provenance is absent from public DTO');}
+  const rejectNews=formFrom(allNews,'package',newsPackage);rejectNews.set('decision','reject');rejectNews.set('comment','');
+  assert.match((await editor.post(rejectNews,origin,newsPath)).headers.get('location')||'',/notice=saved/);
+  assert.equal((await db.query("select count(*)::int n from academy.news_outbox where package_id=$1 and state='cancelled'",[newsPackage])).rows[0].n,9);
+  assert.equal((await anon.request('/en/news/'+newsContent.slug)).status,200,'Reject does not pretend to remove an already released article');
   await db.query('delete from academy.editor_members where user_id=$1', [userIds[1]]);
   assert.match((await reviewer.request('/editorial')).headers.get('location') || '', /notice=access/, 'Membership revocation takes effect immediately');
   const logout = formFrom(afterReload, 'logout');
@@ -346,6 +371,13 @@ try {
   if (userIds.length) {
     // Local fixture cleanup only: privileged transaction bypasses immutability triggers, never production.
     await db.query('begin');await db.query('set local session_replication_role=replica');
+    if(newsBatch){
+      for(const table of ['news_delivery_events','news_outbox','news_releases','news_decisions']){
+        const condition=table==='news_delivery_events'?'outbox_id in (select id from academy.news_outbox where package_id in (select id from academy.news_packages where batch_id=$1))':'package_id in (select id from academy.news_packages where batch_id=$1)';
+        await db.query(`delete from academy.${table} where ${condition}`,[newsBatch]);
+      }
+      await db.query('delete from academy.news_state where story_id=$1',[newsStory]);await db.query('delete from academy.news_packages where batch_id=$1',[newsBatch]);await db.query('delete from academy.news_batches where id=$1',[newsBatch]);await db.query('delete from academy.stories where id=$1',[newsStory]);
+    }
     if(researchDocuments.length) {
       const dossierIds=(await db.query('select id from academy.dossiers where document_id=any($1::uuid[])',[researchDocuments])).rows.map(d=>d.id);
       const contentArtifacts=(await db.query('select id,article_id,script_id from academy.content_drafts where dossier_id=any($1::uuid[])',[dossierIds])).rows;
