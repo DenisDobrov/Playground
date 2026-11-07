@@ -30,3 +30,24 @@ The supplied handoff files passed their SHA256 manifest. Private source bundle h
 Validate standalone schema/body/source alignment, anonymous EN/ES rendering, semantic table, separate source/publication dates, escaped markup, unchanged weekly archive, immutable/repeated import, existing Auth/RLS and queue/budget checks. Publication and channel permalinks are recorded only after observed success, separately from code CI.
 
 For web regressions, restore the previous deployment `dpl_6NHc8QyrcYpz7q7i3WGRF7byJTUf` / `41697c5159bd758c208636599aab0e0a319c1e3f`. Keep release/history records and external posts; do not erase them as part of code rollback. Stop further delivery and reconcile any ambiguous send before retrying.
+
+## Observed site release
+
+PR [#23](https://github.com/DenisDobrov/Playground/pull/23), CI and Preview green, merged as `7aa290b2708df38ee018f61656d6b6e16955ba7e`. Production `dpl_6HJM2cmUb1hTrK34126QeYiyG3Zj` READY on dobrov.org before publishing.
+
+Release timestamp **2026-11-07 14:53:54.235316 UTC**:
+
+- [English](https://dobrov.org/en/news/quantum-computers-beyond-qubits-energy-water-helium-3)
+- [Español](https://dobrov.org/noticias/quantum-computers-beyond-qubits-energy-water-helium-3)
+
+Readback at 14:55:04 UTC confirmed two exact-language snapshots, one genuine owner-instruction decision, empty owner comment, video=true/science=false, nine blocked delivery records pending actual browser delivery, and no new production jobs. Package `14e54c9d-e4ea-4a28-9d08-dd3357e91b70`, hash `8cee2dcdd0d76d351453225e934b78e399a75f13ca6cbd0f2d45a15362735b10`. Anonymous HTTP 200, semantic table, reciprocal language routes, Article metadata and unchanged weekly archive passed. Source month remains June 2026. No paid calls.
+
+## Separate design and private ideas follow-up
+
+- Existing `?view=video` becomes a prominent private Video Ideas tab with an actual count. Compact metadata is paged for search; full immutable packages load only for the selected page. Current and previous public versions are distinguished using release records, independently of channel delivery. AI rationale/version is read-only; owner comment is never prefilled. Existing two-button decision RPC and permissions stay intact.
+- News/Analysis/Topics/Search/Archive routes in ES/EN read only public release DTOs. Accent-insensitive search, chronological order, actual first-publication dates, populated topic pages, 12-card pagination and reciprocal language navigation. No invented popularity, ratings, newsletter or public video section.
+- Original navy/blue/paper layout with original symbolic vector editorial illustrations. They are explicitly labeled, contain no measured data and reuse no publisher artwork. The public source table remains attributed to the original study. Share images remain the existing headline template, corrected to use actual first-publication dates instead of a hardcoded weekly period.
+- Article/BreadcrumbList schema, populated sitemap entries and noindex for internal searches/filter duplicates. Existing analytics privacy controls and exclusion of private pages are unchanged; no new tracking or subscription.
+- Local checks: 137 unit tests, typecheck, production build and expanded built-web SEO tests pass. Source-table width remains scrollable on 360/390, with no page overflow; reading column is 740px on desktop. Original before screenshots were captured at 360/390/768/1440/1920. After-production screenshots and channel observations follow deployment; local preview is not production proof.
+
+This follow-up can roll back to PR23's deployment without removing the published analysis or its history. No database migration is required.

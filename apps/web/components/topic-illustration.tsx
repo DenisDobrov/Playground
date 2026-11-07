@@ -1,0 +1,16 @@
+import type {Language,NewsTopic} from '../lib/news-presentation';
+/** Original vector editorial artwork. Symbolic diagrams, never experimental imagery. */
+export function TopicIllustration({topic,language}:{topic:NewsTopic;language:Language}){
+ const en=language==='en';
+ return <svg viewBox="0 0 1200 630" width="1200" height="630" aria-hidden="true" focusable="false" className={`topic-art topic-art-${topic}`}>
+  <rect width="1200" height="630" fill="#152b46"/><path d="M0 530H1200M0 100H1200M160 0V630M1040 0V630" stroke="#29405b" strokeWidth="2"/>
+  <circle cx="600" cy="315" r="220" stroke="#29405b" strokeWidth="2" fill="none"/><circle cx="600" cy="315" r="270" stroke="#29405b" strokeWidth="2" fill="none"/>
+  {topic==='quantum'?<g><g stroke="#88aaff" strokeWidth="5" fill="none"><path d="M460 270L290 160M740 270L910 160M460 360L290 470M740 360L910 470"/><rect x="455" y="210" width="290" height="210" rx="18"/><path d="M510 270H690M510 315H690M510 360H690"/><circle cx="560" cy="270" r="13" fill="#88aaff"/><circle cx="640" cy="315" r="13" fill="#88aaff"/><circle cx="580" cy="360" r="13" fill="#88aaff"/></g><g fill="#f7f5ef" fontFamily="Arial,sans-serif" fontSize="29" textAnchor="middle"><text x="235" y="120">{en?'Cooling':'Refrigeración'}</text><text x="965" y="120">{en?'Control':'Control'}</text><text x="235" y="520">{en?'Water':'Agua'}</text><text x="965" y="520">{en?'Helium-3':'Helio-3'}</text></g><path d="M890 440a40 40 0 1 1 65 0" stroke="#88aaff" strokeWidth="5" fill="none"/></g>:
+  topic==='brain'?<g stroke="#88aaff" strokeWidth="6" fill="none"><path d="M600 450V175C520 105 420 145 420 230C340 270 365 390 450 400C480 480 560 480 600 450ZM600 175C690 100 790 165 780 235C865 285 825 395 750 400C725 480 645 475 600 450M470 205L525 270L455 340M525 270L600 305M730 210L680 280L755 340M680 280L600 305"/><circle cx="525" cy="270" r="15" fill="#88aaff"/><circle cx="680" cy="280" r="15" fill="#88aaff"/></g>:
+  topic==='origins-life'||topic==='longevity'?<g stroke="#88aaff" strokeWidth="6" fill="none"><ellipse cx="600" cy="315" rx="170" ry="150"/><ellipse cx="600" cy="315" rx="145" ry="125" strokeWidth="2"/><circle cx="620" cy="310" r="55"/><circle cx="520" cy="280" r="16" fill="#88aaff"/><circle cx="550" cy="380" r="13" fill="#88aaff"/><path d="M715 225l30-30M450 350l-45 15M620 150v-40M710 420l30 35"/></g>:
+  topic==='physics-space'?<g stroke="#88aaff" fill="none" strokeWidth="5"><ellipse cx="600" cy="315" rx="245" ry="92" transform="rotate(-25 600 315)"/><circle cx="600" cy="315" r="103" fill="#152b46"/><path d="M600 90V160M600 470V540"/><circle cx="810" cy="190" r="15" fill="#f7f5ef"/></g>:
+  topic==='energy-technology'?<g stroke="#88aaff" strokeWidth="6" fill="none"><rect x="425" y="210" width="340" height="210" rx="20"/><path d="M780 270h25v90h-25M610 225l-65 100h65l-35 80 95-115h-70Z"/><path d="M290 315h90M850 315h80"/></g>:
+  <g stroke="#88aaff" strokeWidth="4" fill="#152b46">{[0,1,2].flatMap(i=>[0,1,2].map(j=><g key={`${i}-${j}`}><path d={`M${430+i*170} ${180+j*135}L600 315`}/><circle cx={430+i*170} cy={180+j*135} r={i===1&&j===1?42:20}/></g>))}</g>}
+  <text x="45" y="588" fill="#a9b8cd" fontFamily="Arial,sans-serif" fontSize="18" letterSpacing="3">DOBROV ACADEMY · {en?'EDITORIAL ILLUSTRATION':'ILUSTRACIÓN EDITORIAL'}</text>
+ </svg>;
+}

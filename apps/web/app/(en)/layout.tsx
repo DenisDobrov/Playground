@@ -3,6 +3,7 @@ import { SiteShell } from '../../components/site-shell';
 import '../globals.css';
 import '../brand.css';
 import '../editorial.css';
+import '../publication.css';
 export const metadata: Metadata = {
   metadataBase: new URL('https://dobrov.org'),
   title: { default: 'Dobrov Academy · Science with evidence', template: '%s · Dobrov Academy' },
