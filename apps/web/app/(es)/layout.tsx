@@ -4,6 +4,7 @@ import { brand } from '../../lib/brand';
 import '../globals.css';
 import '../brand.css';
 import '../editorial.css';
+import '../publication.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://dobrov.org'),

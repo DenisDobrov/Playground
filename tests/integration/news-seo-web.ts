@@ -44,7 +44,7 @@ try{
   assert.equal((await fetch(origin+'/noticias/unpublished-fixture')).status,404);
   const sitemap=await(await fetch(origin+'/sitemap.xml')).text();
   for(const path of ['/','/en','/politica','/en/method','/semana/2026-11-01','/en/week/2026-11-01'])assert.ok(sitemap.includes(`<loc>https://dobrov.org${path}</loc>`));
-  assert.equal((sitemap.match(/<loc>/g)||[]).length,10);assert.ok(!sitemap.includes('/editorial'));
+  assert.equal((sitemap.match(/<loc>/g)||[]).length,20);assert.ok(!sitemap.includes('/editorial'));assert.ok(!sitemap.includes('/buscar'));assert.ok(!sitemap.includes('/search'));
   const home=await(await fetch(origin+'/')).text(),digest=await(await fetch(origin+'/semana/2026-11-01')).text();
   assert.notEqual(home.match(/<h1>(.*?)<\/h1>/s)?.[1],digest.match(/<h1>(.*?)<\/h1>/s)?.[1]);
   assert.ok(home.includes(analysis.slug));assert.ok(!digest.includes(analysis.slug),'Standalone must not rewrite the weekly archive');
@@ -52,6 +52,12 @@ try{
   assert.ok(analysisHtml.includes('<table>'));assert.ok(analysisHtml.includes('2026-06'));assert.ok(analysisHtml.includes('June 2026'));assert.ok(!analysisHtml.includes('<script>Never executable</script>'));
   const analysisLd=JSON.parse(analysisHtml.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)![1]);
   assert.equal(analysisLd['@type'],'Article');assert.equal(analysisLd.datePublished,'2026-11-07T14:00:00.000Z');
+  const breadcrumbs=analysisHtml.match(/<script type="application\/ld\+json">(.*?)<\/script>/gs)??[];assert.ok(breadcrumbs.some(b=>b.includes('BreadcrumbList')));
+  for(const path of ['/noticias','/analisis','/temas','/temas/ai','/archivo','/en/news','/en/analysis','/en/topics','/en/topics/ai','/en/archive'])assert.equal((await fetch(origin+path)).status,200,path);
+  assert.equal((await fetch(origin+'/temas/unknown')).status,404);
+  const search=await(await fetch(origin+'/buscar?q=missing')).text();assert.ok(search.includes('noindex'));assert.ok(search.includes('No hay noticias publicadas'));
+  const repeatedSearch=await fetch(origin+'/buscar?q=one&q=two');assert.equal(repeatedSearch.status,200);
+  const filtered=await(await fetch(origin+'/noticias?range=week')).text();assert.ok(filtered.includes('noindex'));
   const denied=await fetch(origin+'/editorial/news',{redirect:'manual'});assert.equal(denied.status,307);assert.ok(denied.headers.get('location')?.includes('/login'));assert.equal(denied.headers.get('referrer-policy'),'no-referrer');
   console.log(JSON.stringify({passed:true,anonymousFixtureReads:reads,esEnMetadata:true,unchangedArticleDates:true,images1200x630:true,unpublished404:true,sitemap:true,privateDenied:true,productionDataModified:false}));
 }catch(e){console.error(diagnostics);throw e;}finally{child.kill();await once(child,'exit').catch(()=>{});await new Promise<void>(r=>api.close(()=>r()));}
