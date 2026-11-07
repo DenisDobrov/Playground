@@ -51,3 +51,53 @@ Readback at 14:55:04 UTC confirmed two exact-language snapshots, one genuine own
 - Local checks: 137 unit tests, typecheck, production build and expanded built-web SEO tests pass. Source-table width remains scrollable on 360/390, with no page overflow; reading column is 740px on desktop. Original before screenshots were captured at 360/390/768/1440/1920. After-production screenshots and channel observations follow deployment; local preview is not production proof.
 
 This follow-up can roll back to PR23's deployment without removing the published analysis or its history. No database migration is required.
+
+## Production acceptance — 7 November 2026
+
+PR [#24](https://github.com/DenisDobrov/Playground/pull/24) deployed as `84c6dd7162c2d88b448005940c92d823aa32e8db`, deployment `dpl_35xzJvnVHEpx6g1w4vN3Zggq96n8`, READY. Article publication preceded this redesign. The final acceptance follow-up fixes one observed table-header contrast defect and adds the three remaining verified official channel links to the footer. It changes neither article snapshots nor publication dates. The final rollout SHA and repeat audit are appended to Issue #22 after deployment.
+
+### Actual channel delivery
+
+Destination feeds and the exact package outbox were checked before each send. All nine actual browser sends were reconciled into the existing delivery history; no paid platform API was used.
+
+| Channel | Actual publication | Observed presentation / limitations |
+|---|---|---|
+| Telegram | [message 4](https://t.me/dobrovacademy/4) | ES text, both URLs, clickable ES article card. |
+| X | [2119089627273273350](https://x.com/DobrovAcademy/status/2119089627273273350) | EN text, clickable EN article card. No Premium activation. |
+| LinkedIn | [share 7524855935736168448](https://www.linkedin.com/feed/update/urn:li:share:7524855935736168448/) | Company Page, EN text with both URLs. LinkedIn selected the ES card from the second URL. No personal repost or boost. |
+| Facebook | [post 122098141209544022](https://www.facebook.com/permalink.php?story_fbid=pfbid02DbAsj3mFxe7kgm1knA1X5ozi5qU4qTTAMWszMBBYbf2kcd4b4f2CcwTDgWJnpKGAl&id=61596320661841) | Page post via existing Business Suite, ES card. Composer reported an error after creating the post; the published feed and permalink resolved the ambiguity, with no resend. Posting capability does not establish full portfolio control. |
+| Instagram | [Dfchx3wjPFA](https://www.instagram.com/p/Dfchx3wjPFA/) | Static original 1200×630 title card, preserved original crop, ES caption and custom ES alt text. Caption URLs are not clickable; profile bio contains dobrov.org, but no clickable website link was exposed in this desktop profile view. Automatic Threads cross-post stayed off. |
+| Threads | [DfchYhLAJz5](https://www.threads.com/@dobrovacademy/post/DfchYhLAJz5) | ES text and clickable ES card. |
+| Bluesky | [3mzq7ss2crc2i](https://bsky.app/profile/dobrovacademy.bsky.social/post/3mzq7ss2crc2i) | EN text and clickable EN card; post language explicitly English. |
+| WhatsApp Channel | [update 101](https://whatsapp.com/channel/0029VbDqlX2JP21B9kIR2m0U/101) | Existing public channel only; ES text, both URLs and article preview. No private chat broadcast. |
+| YouTube Posts | [UgkxbnGicLQWppz4a3dJ-l3Vm9bNyBKwjxIK](https://www.youtube.com/post/UgkxbnGicLQWppz4a3dJ-l3Vm9bNyBKwjxIK) | Public text post only. YouTube explicitly requires one-time account verification for clickable external links; URLs remain text. Verification was not started. |
+
+Existing profiles observed as Dobrov Academy / dobrovacademy, with Spanish evidence-first bios and ES/EN positioning. X, LinkedIn, Threads, Bluesky and YouTube exposed the intended website/profile destinations; Instagram's desktop-link limitation is separate from delivery. Actual cards were inspected in the composer or published feed, not inferred solely from OG tags. No rights, account links, portfolio recovery cases or subscriptions were changed.
+
+### Private workflow and responsive evidence
+
+Authenticated production [Video Ideas](https://dobrov.org/editorial/news?view=video) showed four ideas, including this published analysis. Search `cuantica` found one result despite the accent in the title. Expanded detail showed **9/9 delivered**, empty optional owner comment, video checked, science unchecked, and exactly the existing approve/reject controls. AI rationale remains version-bound `news-002/1`, separate from the owner field. These checks submitted no decisions. Production queue still contained only the two previously succeeded `normalize_source` jobs; no new media/research job.
+
+Before/after homepage and article screenshots exist at **360, 390, 768, 1440, 1920** widths in the private `artifacts/news-002/screenshots` directory. Measured document widths equalled scroll widths at all five sizes. Mobile table retains all columns in its own scroll region; ArrowRight moved it by 40px with keyboard focus and a visible blue outline. Desktop reading column is 740px. Header navigation has 44px-high targets; brand/link focus is visible. No publisher images were copied.
+
+### SEO and performance evidence
+
+Anonymous production audit at **15:52:49 UTC**: **76 checks PASS**, **64 unique sitemap URLs**, all sitemap routes HTTP 200; exact self-canonicals, reciprocal languages, one H1, Article/BreadcrumbList, organization byline, accurate unchanged release dates, separate June month, 1200×630 PNG metadata, real topic/search/archive routes, noindex search/filter duplicates, unpublished 404 and anonymous private-route redirects. Weekly archive remains unchanged; private rationale is absent from public pages. Existing privacy-scoped analytics was preserved.
+
+Search Console inspected each new ES/EN URL: **URL unknown to Google / not indexed**, no crawl yet. Existing sitemap: processed successfully, last read 7 November, 36 discovered URLs at observation time (the currently served sitemap contains 64). No duplicate sitemap submission, indexing guarantee or traffic claim.
+
+[Initial PageSpeed report](https://pagespeed.web.dev/analysis/https-dobrov-org-noticias-quantum-computers-beyond-qubits-energy-water-helium-3/wzzjuel16z?form_factor=mobile), 15:48 UTC, Lighthouse 13.6.0:
+
+| Lab metric | Mobile | Desktop |
+|---|---:|---:|
+| Performance / SEO / best practices | 100 / 100 / 100 | 100 / 100 / 100 |
+| Accessibility | 96 | 96 |
+| FCP / LCP | 0.8s / 0.8s | 0.2s / 0.2s |
+| Total blocking time | 50ms | 0ms |
+| CLS | 0 | 0 |
+
+No field data is available, so this is not a field INP/Core Web Vitals pass. Initial accessibility finding was white table-header text on a light background caused by competing component/publication styles. The follow-up makes the component's background/text pair explicit and consistent. Production remeasurement follows rollout; do not describe the initial 96 as 100. The earlier unauthenticated PSI API attempt returned quota 429; the official web report succeeded without a key or billing change.
+
+Local validation of the correction: production build and built-server SEO integration (24 anonymous fixture reads) passed. PR23/24 CI also passed Foundation (typecheck, 137 unit tests at PR24, demo, build, SEO) and Database integration (SQL/RLS, queue, budget, imports, metadata, research, content, news and editorial web checks). CI uses isolated local data; no cloud migrations were applied.
+
+No paid AI, video, ads or subscriptions were activated. Direct incremental AI/API spending for this task: **$0**; existing hosting-plan usage is not claimed to be free or measured by this report. Immutable package/source hashes, channel receipts, screenshots, responsive dimensions and audit output remain in ignored private artifacts. Final contrast/rollout evidence is appended to Issue #22. Rollback restores PR24 (or PR23 for the entire design change) and retains public release/history/outbox records.
