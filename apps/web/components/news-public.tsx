@@ -1,27 +1,29 @@
 import Link from 'next/link';
 import {notFound} from 'next/navigation';
 import {digestPath,methodPath,newsPath,newsReleases,newsArticleJsonLd,serializeJsonLd} from '../lib/news';
+import {NewsBody} from './news-body';
 import {PublicPageAnalytics} from './public-page-analytics';
 
 export async function NewsArticle({language,slug}:{language:'en'|'es';slug:string}) {
   const release = (await newsReleases()).find(r=>r.language===language&&r.slug===slug);
   if (!release) notFound();
   const en=language==='en'; const {article,sources}=release.content;
-  return <main className="news-reading"><p className="eyebrow">{en?'RESEARCH NEWS':'ACTUALIDAD CIENTÍFICA'} · 1–7 NOV 2026</p>
+  return <main className="news-reading"><p className="eyebrow">{article.type==='analysis'?(en?'ANALYSIS':'ANÁLISIS'):(en?'RESEARCH NEWS':'ACTUALIDAD CIENTÍFICA')}</p>
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeJsonLd(newsArticleJsonLd(release))}}/>
     <PublicPageAnalytics path={newsPath(language,slug)}/>
     <h1>{article.title}</h1><p><Link href={methodPath(language)}>{en?'By Dobrov Academy':'Por Dobrov Academy'}</Link> · <time dateTime={release.first_published_at}>{en?'Published':'Publicado'}: {new Date(release.first_published_at??release.published_at).toLocaleDateString(en?'en-GB':'es',{timeZone:'UTC',dateStyle:'long'})}</time> · <Link href={newsPath(en?'es':'en',slug)} hrefLang={en?'es':'en'}>{en?'Leer en español':'Read in English'}</Link></p>
     {release.modified_at!==release.first_published_at&&<p><time dateTime={release.modified_at}>{en?'Updated':'Actualizado'}: {new Date(release.modified_at??release.published_at).toLocaleDateString(en?'en-GB':'es',{timeZone:'UTC',dateStyle:'long'})}</time></p>}
-    {article.paragraphs.map((p,i)=><p key={i}>{p}</p>)}
+    {article.sourcePublicationMonth&&<p>{en?'Research journal issue':'Número de la revista científica'}: <time dateTime={article.sourcePublicationMonth}>{new Date(article.sourcePublicationMonth+'-01T00:00:00Z').toLocaleDateString(en?'en-GB':'es',{month:'long',year:'numeric',timeZone:'UTC'})}</time>.</p>}
+    <NewsBody article={article} language={language}/>
     <aside className="news-limit"><h2>{en?'What this does not establish':'Lo que esto no demuestra'}</h2><p>{article.limitations}</p></aside>
     <h2>{en?'Original sources and dates':'Fuentes originales y fechas'}</h2>
-    <ul>{sources.map(s=><li key={s.url}><a href={s.url} rel="noopener noreferrer">{s.title}</a><p>{s.kind} · {en?'Access':'Acceso'}: {s.access==='full_text'?(en?'relevant full-text sections':'secciones pertinentes del texto completo'):s.access==='abstract'?(en?'abstract only':'solo resumen'):s.access==='metadata_only'?(en?'bibliographic reference only':'solo referencia bibliográfica'):(en?'announcement':'comunicado')}. {en?'Study':'Estudio'}: {s.studyDate||'—'}; {en?'announcement':'anuncio'}: {s.announcementDate||'—'}.</p></li>)}</ul>
+    <ol>{sources.map(s=><li key={s.url}><a href={s.url} rel="noopener noreferrer">{s.title}</a><p>{s.kind} · {en?'Access':'Acceso'}: {s.access==='full_text'?(en?'relevant full-text sections':'secciones pertinentes del texto completo'):s.access==='abstract'?(en?'abstract only':'solo resumen'):s.access==='metadata_only'?(en?'bibliographic reference only':'solo referencia bibliográfica'):(en?'announcement':'comunicado')}. {en?'Study':'Estudio'}: {s.studyDate||'—'}; {en?'announcement':'anuncio'}: {s.announcementDate||'—'}.</p>{s.related?.map(r=><p key={r.url}><a href={r.url}>{r.label}</a></p>)}</li>)}</ol>
     <p className="news-method">{en?'Source-checked news summary with AI-assisted translation and owner release authorization. This is not independent scientific replication or peer review.':'Resumen contrastado con las fuentes, con traducción asistida por IA y autorización editorial del propietario. No equivale a una replicación científica independiente ni a una revisión por pares.'}</p>
-    <Link href={digestPath(language)}>{en?'All stories this week →':'Todas las noticias de la semana →'}</Link>
+    <Link href={release.content.period.startsWith('standalone:')?(en?'/en':'/'):digestPath(language)}>{en?'More science news →':'Más noticias científicas →'}</Link>
   </main>;
 }
 export async function NewsDigest({language,home=false}:{language:'en'|'es';home?:boolean}) {
-  const rows=(await newsReleases()).filter(r=>r.language===language&&r.content.period==='2026-11-01/2026-11-07').sort((a,b)=>a.content.section-b.content.section);
+  const rows=(await newsReleases()).filter(r=>r.language===language&&(home||r.content.period==='2026-11-01/2026-11-07')).sort((a,b)=>home?(b.first_published_at??b.published_at).localeCompare(a.first_published_at??a.published_at):a.content.section-b.content.section);
   const en=language==='en';
   if(!rows.length&&!home)notFound();
   return <main className="news-reading"><p className="eyebrow">DOBROV ACADEMY · 1–7 NOV 2026</p><h1>{home?(en?'Science, with its limits in view.':'Ciencia, con sus límites a la vista.'):(en?'The week in science · 1–7 November 2026':'La semana en ciencia · 1–7 noviembre 2026')}</h1>

@@ -40,7 +40,7 @@ export function articleMetadata(r:NewsRelease):Metadata {
 }
 export function newsArticleJsonLd(r:NewsRelease) {
   const url=newsOrigin+newsPath(r.language,r.slug);
-  return {'@context':'https://schema.org','@type':'NewsArticle','@id':`${url}#article`,url,mainEntityOfPage:url,headline:r.content.article.title,
+  return {'@context':'https://schema.org','@type':r.content.article.type==='analysis'?'Article':'NewsArticle','@id':`${url}#article`,url,mainEntityOfPage:url,headline:r.content.article.title,
     description:shortDescription(r.content.article.paragraphs[0]),inLanguage:r.language,image:[shareImage(r.language,r.slug)],
     datePublished:r.first_published_at??r.published_at,dateModified:r.modified_at??r.published_at,isAccessibleForFree:true,
     author:{'@type':'Organization',name:'Dobrov Academy',url:newsOrigin+methodPath(r.language)},
