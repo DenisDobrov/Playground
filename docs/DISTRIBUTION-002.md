@@ -2,6 +2,8 @@
 
 7 November 2026. NEWS-001 remains the product mode. No video, manuscripts, advertising, new subscriptions or paid model calls.
 
+**Continuation after PR20 merge:** the three drafts are now imported into production and awaiting the owner's existing two-button review. Search Console processed the submitted sitemap; free Hobby Web Analytics is enabled in the project, with collection/SEO code in the next reviewed web change. Exact timestamps, package IDs and validation: [SEO-001](SEO-001.md). The audit/dry-run statements below describe the earlier baseline.
+
 ## Production evidence
 
 Web revision `9a0ef92c13e07d2c27e62338469cab2c8854582d`, deployment `dpl_3CYMptXnLuAK34fE1uRFqJgUWmmz` remains unchanged during delivery/audit. Existing account roles and links are unchanged.
