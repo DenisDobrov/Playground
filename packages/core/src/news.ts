@@ -23,7 +23,21 @@ export const newsPackageSchema=z.object({
   verification:z.object({status:z.enum(['checked_summary','blocked']),reason:z.string(),independentScientificVerification:z.literal('not_performed')}).strict(),
   changes:z.array(z.object({original:z.string(),replacement:z.string(),reason:z.string(),source:safeUrl}).strict()),
   suggestions:z.object({video:z.boolean(),sciencePublication:z.boolean(),videoReason:z.string(),scienceReason:z.string(),provenance:z.literal('ai_suggested')}).strict(),
-  channelTexts:z.record(z.enum(newsChannels),z.object({en:z.string().max(10000),es:z.string().max(10000)})),
+  channelTexts:z.partialRecord(z.enum(newsChannels),z.object({en:z.string().max(10000),es:z.string().max(10000)})).refine(t=>Object.keys(t).length>0,'At least one selected channel required'),
+  // Private, immutable review assets. Public release DTOs deliberately omit this field.
+  campaign:z.object({
+    id:z.string().regex(/^[a-z0-9-]{3,80}$/),
+    title:z.string().min(1).max(200),
+    basePackageId:z.string().uuid(),
+    basePackageHash:z.string().regex(/^[a-f0-9]{64}$/),
+    assets:z.array(z.object({
+      language:z.enum(['es','en']),alt:z.string().min(1).max(1000),
+      mime:z.literal('image/png'),width:z.literal(1080),height:z.literal(1350),
+      sha256:z.string().regex(/^[a-f0-9]{64}$/),
+      dataUrl:z.string().max(350000).regex(/^data:image\/png;base64,iVBORw0KGgo[A-Za-z0-9+/]*={0,2}$/),
+      rights:z.literal('original_dobrov_academy_typography')
+    }).strict()).length(2).refine(a=>new Set(a.map(x=>x.language)).size===2,'One image per language required')
+  }).strict().optional(),
   provenance:z.object({method:z.literal('codex_assisted_source_checked'),modelApiCalls:z.literal(0),sourceHash:z.string().regex(/^[a-f0-9]{64}$/)}).strict()
 }).strict();
 export type NewsPackage=z.infer<typeof newsPackageSchema>;

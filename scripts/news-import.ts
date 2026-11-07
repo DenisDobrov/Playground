@@ -16,6 +16,7 @@ if(!local&&(target.origin!=='https://upwrplsgunjanragbggb.supabase.co'||!args.in
 const hash=(text:string)=>createHash('sha256').update(text).digest('hex');
 const source=await readFile(original,'utf8'),instructionText=await readFile(instruction,'utf8');
 const packages=z.array(newsPackageSchema).length(17).parse(JSON.parse(await readFile(prepared,'utf8')));
+if(packages.some(p=>p.campaign))throw new Error('Campaigns require news-campaign-import; batch approval cannot carry over');
 if(new Set(packages.map(p=>p.section)).size!==17||packages.some(p=>p.provenance.sourceHash!==hash(source)))throw new Error('Source hash/numbering mismatch');
 const client=createClient(url,key,{db:{schema:'academy'},auth:{persistSession:false,autoRefreshToken:false}});
 const membership=await client.from('editor_members').select('role').eq('user_id',owner).single();
