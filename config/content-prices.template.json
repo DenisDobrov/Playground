@@ -1,0 +1,11 @@
+{
+  "version": "REPLACE_WITH_REVIEWED_VERSION",
+  "model": "REPLACE_WITH_AVAILABLE_CONFIGURED_MODEL",
+  "billingTier": "paid",
+  "reviewedAt": "REPLACE_WITH_UTC_TIMESTAMP",
+  "expiresAt": "REPLACE_WITH_UTC_TIMESTAMP_WITHIN_31_DAYS",
+  "sourceUrl": "https://ai.google.dev/gemini-api/docs/pricing",
+  "inputMicrosPerMillion": null,
+  "cachedInputMicrosPerMillion": null,
+  "outputMicrosPerMillion": null
+}

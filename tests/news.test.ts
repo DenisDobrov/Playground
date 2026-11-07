@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {newsExecutionKind,newsPackageSchema,suggestionDefaults} from '../packages/core/src/news';
+import {newsExecutionKind,newsPackageSchema,suggestionDefaults,textContentKinds} from '../packages/core/src/news';
 import {newsFixture} from './fixtures/news';
 describe('news release contract',()=>{
   it('accepts a complete bilingual package while retaining unverified scientific status',()=>{
@@ -15,5 +15,7 @@ describe('news release contract',()=>{
   it('rejects every frozen execution mode including all',()=>{
     for(const kind of ['all','script','tts','video','short','manuscript','research'])expect(()=>newsExecutionKind(kind)).toThrow('NEWS_FREEZE');
     expect(newsExecutionKind('social_news')).toBe('social_news');
+    expect(textContentKinds('all')).toEqual(['article_es','article_en']);
+    expect(()=>textContentKinds('script_es')).toThrow('NEWS_FREEZE');
   });
 });

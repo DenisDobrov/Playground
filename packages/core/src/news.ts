@@ -33,3 +33,8 @@ export function newsExecutionKind(kind:string){
   return kind;
 }
 export function suggestionDefaults(section:number){return {video:[2,7,16].includes(section),sciencePublication:false,provenance:'ai_suggested' as const};}
+export function textContentKinds(kind:string):('article_es'|'article_en')[]{
+  if(kind==='all')return ['article_es','article_en'];
+  if(kind==='article_es'||kind==='article_en')return [kind];
+  throw new Error('NEWS_FREEZE: only article_es/article_en are enabled');
+}
