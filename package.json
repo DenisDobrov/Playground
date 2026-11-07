@@ -11,6 +11,7 @@
     "node": ">=22.14.0"
   },
   "scripts": {
+    "test:news:seo": "tsx tests/integration/news-seo-web.ts",
     "test:news:integration": "tsx tests/integration/news.ts",
     "gold:export:local": "tsx --env-file=.env.local-worker apps/worker/src/export-gold.ts",
     "sources:ingest:local": "tsx --env-file=.env.local-worker apps/worker/src/ingest.ts",
