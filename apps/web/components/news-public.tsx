@@ -3,6 +3,7 @@ import {notFound} from 'next/navigation';
 import {digestPath,methodPath,newsPath,newsReleases,newsArticleJsonLd,serializeJsonLd} from '../lib/news';
 import {PublicPageAnalytics} from './public-page-analytics';
 import {NewsBody} from './news-body';
+import {NewsVideo} from './news-video';
 import {TopicStrip,PublicNewsCard,NewsDate} from './news-listing';
 import {topicOf,topics,topicPath,publicListingPath,readingMinutes,orderedNews} from '../lib/news-presentation';
 
@@ -22,6 +23,7 @@ export async function NewsArticle({language,slug}:{language:'en'|'es';slug:strin
     {article.sourcePublicationMonth&&<p>{en?'Research journal issue':'Número de la revista científica'}: <time dateTime={article.sourcePublicationMonth}>{new Date(article.sourcePublicationMonth+'-01T00:00:00Z').toLocaleDateString(en?'en-GB':'es',{month:'long',year:'numeric',timeZone:'UTC'})}</time>.</p>}
     </header><div className="publication-article-body"><NewsBody article={article} language={language}/>
     <aside className="news-limit"><h2>{en?'What this does not establish':'Lo que esto no demuestra'}</h2><p>{article.limitations}</p></aside>
+    <NewsVideo release={release}/>
     <h2>{en?'Original sources and dates':'Fuentes originales y fechas'}</h2>
     <ol>{sources.map(s=><li key={s.url}><a href={s.url} rel="noopener noreferrer">{s.title}</a><p>{s.kind} · {en?'Access':'Acceso'}: {s.access==='full_text'?(en?'relevant full-text sections':'secciones pertinentes del texto completo'):s.access==='abstract'?(en?'abstract only':'solo resumen'):s.access==='metadata_only'?(en?'bibliographic reference only':'solo referencia bibliográfica'):(en?'announcement':'comunicado')}. {en?'Study':'Estudio'}: {s.studyDate||'—'}; {en?'announcement':'anuncio'}: {s.announcementDate||'—'}.</p>{s.related?.map(r=><p key={r.url}><a href={r.url}>{r.label}</a></p>)}</li>)}</ol>
     <p className="news-method">{en?'Source-checked news summary with AI-assisted translation and owner release authorization. This is not independent scientific replication or peer review.':'Resumen contrastado con las fuentes, con traducción asistida por IA y autorización editorial del propietario. No equivale a una replicación científica independiente ni a una revisión por pares.'}</p>
