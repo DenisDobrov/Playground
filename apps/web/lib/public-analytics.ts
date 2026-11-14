@@ -7,7 +7,7 @@ export function filterPublicView(event:PublicView,path:string,context:PrivacyCon
     const current=new URL(context.currentUrl),url=new URL(event.url);
     const hosts=['dobrov.org','www.dobrov.org'];
     if(!['https://dobrov.org','https://www.dobrov.org'].includes(current.origin)||current.username||current.password||url.username||url.password||url.origin!==current.origin||current.pathname!==path||url.pathname!==path)return null;
-    if(!/^\/(?:$|en$|politica$|en\/method$|noticias\/[a-z0-9-]+$|en\/news\/[a-z0-9-]+$|semana\/2026-11-01$|en\/week\/2026-11-01$)/.test(path))return null;
+    if(!/^\/(?:$|es$|en$|ru$|zh$|politica$|(?:en|ru|zh)\/method$|noticias\/[a-z0-9-]+$|(?:en|ru|zh)\/news\/[a-z0-9-]+$|semana\/\d{4}-\d{2}-\d{2}$|(?:en|ru|zh)\/week\/\d{4}-\d{2}-\d{2}$)/.test(path))return null;
     // The SDK does not expose referrer rewriting. Drop potentially sensitive referrers entirely.
     if(context.referrer){const ref=new URL(context.referrer);if(ref.search||ref.hash||ref.username||ref.password||(hosts.includes(ref.hostname)&&/^\/(editorial|login|auth|api)(\/|$)/.test(ref.pathname)))return null;}
     return {type:'pageview',url:current.origin+path};

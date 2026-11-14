@@ -1,8 +1,18 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { editorialConfig, editorialEnabled } from './lib/editorial-config';
+import {homePath,preferredLanguage} from './lib/news-languages';
 
 export async function proxy(request: NextRequest) {
+  // Negotiate only the neutral entry. Explicit article and language URLs always win.
+  if(request.nextUrl.pathname==='/'){
+    const language=preferredLanguage(request.cookies.get('da-language')?.value,request.headers.get('accept-language'));
+    const url=request.nextUrl.clone();url.pathname=homePath(language);
+    const response=NextResponse.redirect(url,307);
+    response.headers.set('Vary','Accept-Language, Cookie');
+    response.headers.set('Cache-Control','private, no-store, max-age=0');
+    return response;
+  }
   if (!editorialEnabled()) return NextResponse.next();
   const config = editorialConfig();
   let response = NextResponse.next({ request });
@@ -20,4 +30,4 @@ export async function proxy(request: NextRequest) {
   response.headers.set('Referrer-Policy', 'no-referrer');
   return response;
 }
-export const config = { matcher: ['/editorial/:path*', '/login', '/auth/:path*'] };
+export const config = { matcher: ['/', '/editorial/:path*', '/login', '/auth/:path*'] };

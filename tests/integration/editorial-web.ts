@@ -125,7 +125,10 @@ try {
     assert.match(englishHtml,/<html lang="en"/,'Correct server-rendered document language');
     assert.ok(!englishHtml.includes('PORTAL EN VISTA PREVIA'),'English shell does not inherit Spanish banner');
   }
-  assert.match(await (await anon.request('/')).text(),/<html lang="es"/);
+  const neutralHome = await anon.request('/');
+  assert.equal(neutralHome.status,307,'Neutral home negotiates the publication language');
+  assert.equal(new URL(neutralHome.headers.get('location')!,origin).pathname,'/es','Unknown browser language defaults to Spanish');
+  assert.match(await (await anon.request('/es')).text(),/<html lang="es"/);
   assert.equal((await anon.request('/en/stories/missing')).status,404,'Missing English article does not silently serve Spanish');
   assert.equal((await anon.request('/editorial')).headers.get('location'), '/login');
   assert.equal((await anon.request('/editorial/stories')).headers.get('location'), '/login');
