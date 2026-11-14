@@ -18,7 +18,7 @@ const db=new pg.Client({connectionString:validateRemoteTarget(process.env.SUPABA
 let commitAttempted=false,transactionCommitted=false;
 try{
  await db.connect();await db.query(apply?'begin':'begin read only');
- if(apply)await db.query("select pg_advisory_xact_lock(hashtextextended('news-003:'+ $1,0))",[sourceHash]);
+ if(apply)await db.query("select pg_advisory_xact_lock(hashtextextended('news-003:' || $1::text,0))",[sourceHash]);
  const batchBefore=(await db.query('select id,owner_authorization from academy.news_batches where source_hash=$1',[sourceHash])).rows[0];
  if(batchBefore?.owner_authorization)throw Error('This preparation must not inherit batch publication authorization');
  const plans=[];
