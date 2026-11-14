@@ -43,7 +43,7 @@ try{
   assert.equal((await fetch(origin+'/share/es/unpublished-fixture')).status,404);
   assert.equal((await fetch(origin+'/noticias/unpublished-fixture')).status,404);
   const sitemap=await(await fetch(origin+'/sitemap.xml')).text();
-  for(const path of ['/','/en','/politica','/en/method','/semana/2026-11-01','/en/week/2026-11-01'])assert.ok(sitemap.includes(`<loc>https://dobrov.org${path}</loc>`));
+  for(const path of ['/es','/en','/politica','/en/method','/semana/2026-11-01','/en/week/2026-11-01'])assert.ok(sitemap.includes(`<loc>https://dobrov.org${path}</loc>`));
   assert.equal((sitemap.match(/<loc>/g)||[]).length,20);assert.ok(!sitemap.includes('/editorial'));assert.ok(!sitemap.includes('/buscar'));assert.ok(!sitemap.includes('/search'));
   const home=await(await fetch(origin+'/')).text(),digest=await(await fetch(origin+'/semana/2026-11-01')).text();
   assert.notEqual(home.match(/<h1>(.*?)<\/h1>/s)?.[1],digest.match(/<h1>(.*?)<\/h1>/s)?.[1]);

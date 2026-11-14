@@ -5,18 +5,21 @@ import {decideNews} from '../app/(es)/editorial/news/actions';
 import {NewsBody} from './news-body';
 import {newsPath} from '../lib/news-seo';
 import {topicOf,topics} from '../lib/news-presentation';
+import {languages,languageNames,type Language} from '../lib/news-languages';
+import {NewsResearch} from './news-research';
 export interface NewsCardData {story_id:string;package_id:string;version:number;decision:string|null;comment:string;suggested_video:boolean;suggested_science:boolean;flags_origin:string;package:{id:string;version:number;content:NewsPackage};}
 export interface NewsDelivery {id:string;package_id:string;channel:string;state:string;remote_url:string|null;error_code:string|null;}
-export interface NewsPublication {package_id:string;story_id:string;language:'en'|'es';slug:string;published_at:string;}
-export function NewsCard({row,requestId,editor,deliveries,publications=[],compact=false}:{row:NewsCardData;requestId:string;editor:boolean;deliveries:NewsDelivery[];publications?:NewsPublication[];compact?:boolean}) {
-  const [language,setLanguage]=useState<'en'|'es'>('es'); const p=row.package.content;const article=p[language];
+export interface NewsPublication {package_id:string;story_id:string;language:Language;slug:string;published_at:string;}
+export function NewsCard({row,requestId,editor,deliveries,publications=[],compact=false,initialLanguage='es'}:{row:NewsCardData;requestId:string;editor:boolean;deliveries:NewsDelivery[];publications?:NewsPublication[];compact?:boolean;initialLanguage?:Language}) {
+  const p=row.package.content;const [language,setLanguage]=useState<Language>(p[initialLanguage]?initialLanguage:'es');const article=p[language]??p.es;
   const labels:Record<string,string>={pending:'Ожидает',sending:'Отправляется',published:'Опубликовано',blocked:'Нужен доступ',failed:'Ошибка',uncertain:'Нужна проверка результата',cancelled:'Отменено'};
   const delivered=deliveries.filter(d=>d.state==='published').length;
-  const recommendation=p.suggestions.videoRecommendation?.[language],rationale=recommendation?.reason||p.suggestions.videoReason;
+  const recommendation=p.suggestions.videoRecommendation?.[language==='en'?'en':'es'],rationale=recommendation?.reason||p.suggestions.videoReason;
   const review=<div className="news-editor-card"><p className="eyebrow">{p.period.startsWith('standalone:')?'Анализ':`№${p.section}`} · {p.period} · {row.decision==='approve'?'Разрешён выпуск':row.decision==='reject'?'Отклонено':'Ожидает решения'}</p>
-    <div role="group" aria-label="Язык новости"><button type="button" aria-pressed={language==='es'} onClick={()=>setLanguage('es')}>ES</button><button type="button" aria-pressed={language==='en'} onClick={()=>setLanguage('en')}>EN</button></div>
+    <div role="group" aria-label="Язык новости">{languages.filter(l=>p[l]).map(l=><button key={l} type="button" aria-pressed={language===l} onClick={()=>setLanguage(l)}>{languageNames[l]}</button>)}</div>
     <section lang={language}><h2>{article.title}</h2><NewsBody article={article} language={language}/><aside className="news-limit">{article.limitations}</aside></section>
     <p>{p.verification.status==='checked_summary'?'Пересказ сверен с источниками.':'Выпуск заблокирован: '+p.verification.reason} Независимое научное воспроизведение не выполнялось.</p>
+    {p.research&&<NewsResearch research={p.research}/>}
     <p role="status">{publications.some(r=>r.package_id===row.package_id)?'Текущий пакет опубликован на сайте.':publications.length?'На сайте опубликована предыдущая версия; текущий пакет — черновик.':'На сайте ещё не опубликовано.'} {deliveries.length>0&&<>Каналы: {delivered} из {deliveries.length} опубликовано{deliveries.some(d=>['failed','uncertain'].includes(d.state))?' · требуется проверка':''}.</>}</p>
     {!compact&&rationale&&<aside className="news-ai-recommendation"><h3>AI recommendation / Recomendación de IA</h3><p lang={recommendation?language:undefined}>{rationale}</p>{recommendation&&<><p>{recommendation.visualAngle}</p><p>{recommendation.caveat}</p></>}<small>ИИ · {p.suggestions.videoRecommendation?.version??'news-release/1'} · пакет v{row.package.version}. Это предложение, не ваш комментарий.</small></aside>}
     <details><summary>Источники и изменения</summary><ul>{p.sources.map(s=><li key={s.url}><a href={s.url}>{s.title}</a> · {s.access} · {s.studyDate||'дата исследования не установлена'} / {s.announcementDate||'без отдельного анонса'}<p>{s.finding}</p></li>)}</ul>{p.changes.map((c,i)=><p key={i}>{c.original} → {c.replacement}. {c.reason} <a href={c.source}>Источник</a></p>)}</details>
@@ -32,7 +35,7 @@ export function NewsCard({row,requestId,editor,deliveries,publications=[],compac
     </form>
     <details><summary>Доставка и история</summary><p>Пакет {row.package_id}, версия {row.package.version}; предложения: {row.flags_origin}.</p><p>{p.suggestions.videoReason} {p.suggestions.scienceReason}</p>{row.decision==='reject'&&deliveries.some(d=>d.state==='published')&&<p>Опубликованные материалы остаются доступными. Для снятия или исправления нужна отдельная операция.</p>}<ul>{deliveries.map(d=><li key={d.id}>{d.channel}: {d.error_code==='OWNER_DEFERRED'?'Отложено владельцем':labels[d.state]||d.state} {d.remote_url&&<a href={d.remote_url}>Открыть публикацию</a>} {d.error_code&&<small>{d.error_code}</small>}</li>)}</ul><a href={`/editorial/news/history?story=${row.story_id}`}>История решений</a></details>
   </div>;
-  if(!compact)return <article>{review}</article>;
-  const links=(['es','en'] as const).map(lang=>publications.filter(r=>r.language===lang).sort((a,b)=>b.published_at.localeCompare(a.published_at))[0]).filter(Boolean);
+  if(!compact)return <article id={`story-${row.story_id}`}>{review}</article>;
+  const links=languages.map(lang=>publications.filter(r=>r.language===lang).sort((a,b)=>b.published_at.localeCompare(a.published_at))[0]).filter(Boolean);
   return <article className="news-idea-card"><p className="eyebrow">{topics[topicOf(p.en,p.slug)][language]} · {p.sources[0]?.studyDate||p.period} · {row.decision==='approve'?'Разрешён':row.decision==='reject'?'Отклонён':'Ожидает решения'}</p><h2>{article.title}</h2><p>{publications.some(r=>r.package_id===row.package_id)?'Текущий пакет опубликован':publications.length?'Опубликована прежняя версия; текущий пакет — черновик':'Черновик'} · {links.map(r=><a key={r.language} href={newsPath(r.language,r.slug)}>{r.language.toUpperCase()} ↗ </a>)}</p><aside className="news-ai-recommendation"><h3>AI recommendation / Recomendación de IA</h3><p>{rationale||'Для этой версии обоснование пока не сформировано.'}</p>{recommendation&&<><p>{recommendation.visualAngle}</p><p>{recommendation.caveat}</p></>}<small>ИИ · {p.suggestions.videoRecommendation?.version??'news-release/1'} · пакет v{row.package.version}. Производство видео на паузе.</small></aside><p><a href={p.sources[0]?.url}>{p.sources[0]?.title}</a></p><details><summary>Открыть новость и редакционное решение</summary>{review}</details></article>;
 }

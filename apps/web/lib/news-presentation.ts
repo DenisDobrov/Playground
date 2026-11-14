@@ -2,8 +2,9 @@ import type {NewsPackage} from '@science/core';
 import {newsTopics} from '@science/core';
 import type {NewsRelease} from './news-seo';
 export type NewsTopic=typeof newsTopics[number];
-export type Language='en'|'es';
-export const topics:Record<NewsTopic,{en:string;es:string}>={ai:{en:'AI',es:'IA'},'physics-space':{en:'Physics & space',es:'Física y espacio'},quantum:{en:'Quantum',es:'Cuántica'},'origins-life':{en:'Origins of life',es:'Origen de la vida'},brain:{en:'Brain',es:'Cerebro'},longevity:{en:'Longevity',es:'Longevidad'},'energy-technology':{en:'Energy & technology',es:'Energía y tecnología'}};
+import {languages,homePath,type Language} from './news-languages';
+export type {Language} from './news-languages';
+export const topics:Record<NewsTopic,Record<Language,string>>={ai:{en:'AI',es:'IA',ru:'ИИ','zh-Hans':'人工智能'},'physics-space':{en:'Physics & space',es:'Física y espacio',ru:'Физика и космос','zh-Hans':'物理与太空'},quantum:{en:'Quantum',es:'Cuántica',ru:'Квантовые технологии','zh-Hans':'量子科技'},'origins-life':{en:'Origins of life',es:'Origen de la vida',ru:'Происхождение жизни','zh-Hans':'生命起源'},brain:{en:'Brain',es:'Cerebro',ru:'Мозг','zh-Hans':'脑科学'},longevity:{en:'Longevity',es:'Longevidad',ru:'Долголетие','zh-Hans':'长寿研究'},'energy-technology':{en:'Energy & technology',es:'Energía y tecnología',ru:'Энергия и технологии','zh-Hans':'能源与技术'}};
 export function topicOf(article:NewsPackage['en'],slug=''):NewsTopic {
   if(article.topic)return article.topic;
   const text=foldText(slug+' '+article.title);
@@ -16,17 +17,19 @@ export function topicOf(article:NewsPackage['en'],slug=''):NewsTopic {
   return 'ai';
 }
 export function foldText(text:string){return text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
-export function readingMinutes(article:NewsPackage['en']){const tableWords=article.blocks?.filter(b=>b.type==='table').map(b=>b.type==='table'?[b.caption,...b.headers,...b.rows.flat(),b.note].join(' '):'').join(' ')??'';return Math.max(1,Math.ceil((article.paragraphs.join(' ')+' '+tableWords+' '+article.limitations).trim().split(/\s+/).length/220));}
+export function readingMinutes(article:NewsPackage['en']){const tableWords=article.blocks?.filter(b=>b.type==='table').map(b=>b.type==='table'?[b.caption,...b.headers,...b.rows.flat(),b.note].join(' '):'').join(' ')??'';const text=article.paragraphs.join(' ')+' '+tableWords+' '+article.limitations;const cjk=(text.match(/[\p{Script=Han}]/gu)??[]).length;const words=text.replace(/[\p{Script=Han}]/gu,'').trim().split(/\s+/).filter(Boolean).length;return Math.max(1,Math.ceil(words/220+cjk/350));}
 export const queryText=(value:unknown)=>typeof value==='string'?value.trim().slice(0,200):'';
 export const hasTopic=(r:NewsRelease,topic:string)=>topicOf(r.content.article,r.slug)===topic||r.content.article.secondaryTopics?.includes(topic as NewsTopic)===true;
-export const publicListingPath=(lang:Language,kind:'news'|'analysis'|'topics'|'search'|'archive')=>lang==='en'?`/en/${kind}`:({news:'/noticias',analysis:'/analisis',topics:'/temas',search:'/buscar',archive:'/archivo'}[kind]);
+export const publicListingPath=(lang:Language,kind:'news'|'analysis'|'topics'|'search'|'archive')=>lang==='es'?({news:'/noticias',analysis:'/analisis',topics:'/temas',search:'/buscar',archive:'/archivo'}[kind]):`${homePath(lang)}/${kind}`;
 export const topicPath=(lang:Language,topic:NewsTopic)=>`${publicListingPath(lang,'topics')}/${topic}`;
 export function translatedPath(path:string,language:Language):string {
-  if(path.startsWith('/editorial')||path==='/login')return language==='en'?'/en':'/';
-  const pairs=[['/','/en'],['/politica','/en/method'],['/noticias','/en/news'],['/analisis','/en/analysis'],['/temas','/en/topics'],['/buscar','/en/search'],['/archivo','/en/archive'],['/semana/2026-11-01','/en/week/2026-11-01']];
-  for(const [es,en] of pairs){if(path===es||path===en)return language==='en'?en:es;}
-  for(const [es,en] of pairs.filter(p=>p[0]!=='/')){if(path.startsWith(es+'/'))return(language==='en'?en:es)+path.slice(es.length);if(path.startsWith(en+'/'))return(language==='en'?en:es)+path.slice(en.length);}
-  return language==='en'?'/en':'/';
+  if(languages.some(l=>homePath(l)===path))return homePath(language);
+  const kinds=['news','analysis','topics','search','archive'] as const;
+  for(const from of languages){
+    const pairs=[...kinds.map(k=>[publicListingPath(from,k),publicListingPath(language,k)]),[from==='es'?'/politica':`${homePath(from)}/method`,language==='es'?'/politica':`${homePath(language)}/method`],[from==='es'?'/semana':`${homePath(from)}/week`,language==='es'?'/semana':`${homePath(language)}/week`]];
+    for(const [prefix,target] of pairs)if(path===prefix||path.startsWith(prefix+'/'))return target+path.slice(prefix.length);
+  }
+  return homePath(language);
 }
 export function orderedNews(rows:NewsRelease[],language:Language){return rows.filter(r=>r.language===language).sort((a,b)=>(b.first_published_at??b.published_at).localeCompare(a.first_published_at??a.published_at)||a.slug.localeCompare(b.slug));}
 export function filterNews(rows:NewsRelease[],options:{query?:string;topic?:string;type?:string;window?:string;now?:number}) {

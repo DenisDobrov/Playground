@@ -13,6 +13,8 @@ const article=z.object({
   limitations:z.string().min(1).max(4000),
   type:z.enum(['news','analysis']).optional(),topic:z.enum(newsTopics).optional(),
   secondaryTopics:z.array(z.enum(newsTopics)).max(3).optional(),
+  seo:z.object({title:z.string().min(3).max(300),description:z.string().min(20).max(500)}).strict().optional(),
+  tags:z.array(z.string().min(1).max(100)).max(12).optional(),
   sourcePublicationMonth:z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/).optional(),
   blocks:z.array(z.discriminatedUnion('type',[
     z.object({type:z.literal('paragraph'),text:z.string().min(1).max(5000)}).strict(),
@@ -23,7 +25,18 @@ export const newsPackageSchema=z.object({
   policy:z.literal(NEWS_POLICY),
   slug:z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(120),
   eventKey:z.string().min(5).max(500),section:z.number().int().min(1).max(17),
-  period:z.union([z.literal('2026-11-01/2026-11-07'),z.string().regex(/^standalone:\d{4}-\d{2}-\d{2}$/).refine(v=>!Number.isNaN(Date.parse(v.slice(11)))&&new Date(v.slice(11)).toISOString().slice(0,10)===v.slice(11),'Valid publication preparation date required')]),en:article,es:article,
+  period:z.union([z.string().regex(/^\d{4}-\d{2}-\d{2}\/\d{4}-\d{2}-\d{2}$/).refine(v=>v.split('/').every(d=>!Number.isNaN(Date.parse(d))&&new Date(d).toISOString().slice(0,10)===d)&&v.slice(0,10)<=v.slice(11),'Valid ordered weekly dates required'),z.string().regex(/^standalone:\d{4}-\d{2}-\d{2}$/).refine(v=>!Number.isNaN(Date.parse(v.slice(11)))&&new Date(v.slice(11)).toISOString().slice(0,10)===v.slice(11),'Valid publication preparation date required')]),en:article,es:article,ru:article.optional(),'zh-Hans':article.optional(),
+  // Source checks are agent work, never substituted for an owner's exact-package release decision.
+  research:z.object({
+    version:z.literal('news-003/1'),
+    eventDates:z.array(z.object({kind:z.enum(['first_public','preprint','journal','announcement','news_event']),date:z.string().nullable(),source:safeUrl,notes:z.string()}).strict()).min(1),
+    dossier:z.object({summaryEn:z.string().min(1),claims:z.array(z.object({id:z.string(),textEn:z.string().min(1),type:z.enum(['measured_result','author_interpretation','vendor_claim','editorial_explanation','speculation']),source:safeUrl,locator:z.string().min(1),quantity:z.string().nullable(),unit:z.string().nullable(),object:z.string(),conditions:z.string(),comparator:z.string().nullable(),sample:z.string().nullable(),uncertainty:z.string().nullable(),limitations:z.string()}).strict()).min(1),authorValidation:z.string(),externalVerification:z.string(),independent_verification:z.literal('not_performed')}).strict(),
+    sourceReview:z.object({status:z.enum(['checked','limited','blocked']),method:z.literal('agent_source_meaning_check'),findings:z.string(),checkedAt:z.string().datetime()}).strict(),
+    editorialBrief:z.object({angle:z.string(),audience:z.string(),keyMessage:z.string(),importance:z.string(),limitations:z.string()}).strict(),
+    languageChecks:z.array(z.object({language:z.enum(['es','en','ru','zh-Hans']),status:z.enum(['checked','blocked']),method:z.literal('agent_consistency_check'),notes:z.string()}).strict()).min(2).max(4),
+    humanReview:z.literal('pending_exact_package_decision'),
+    videoBrief:z.object({status:z.literal('idea_only'),angle:z.string(),audience:z.string(),keyMessage:z.string(),importance:z.string(),claimIds:z.array(z.string()).min(3).max(5),autonomyLimits:z.string(),visuals:z.array(z.object({url:safeUrl,description:z.string(),rights:z.string()}).strict()),questions:z.array(z.string())}).strict().optional()
+  }).strict().optional(),
   sources:z.array(z.object({
     url:safeUrl,title:z.string().min(1),kind:z.enum(['journal','preprint','institution','vendor','coverage']),
     access:z.enum(['abstract','full_text','announcement','metadata_only']),
@@ -51,7 +64,22 @@ export const newsPackageSchema=z.object({
     }).strict()).length(2).refine(a=>new Set(a.map(x=>x.language)).size===2,'One image per language required')
   }).strict().optional(),
   provenance:z.object({method:z.literal('codex_assisted_source_checked'),modelApiCalls:z.literal(0),sourceHash:z.string().regex(/^[a-f0-9]{64}$/)}).strict()
-}).strict().refine(p=>[p.en,p.es].every(a=>!a.blocks||a.blocks.every(b=>b.type!=='table'||p.sources.some(s=>s.url===b.sourceUrl))),'Table must cite a package source');
+}).strict().superRefine((p,ctx)=>{
+ const present=(['es','en','ru','zh-Hans'] as const).filter(l=>p[l]);
+ const why={es:'Por qué importa',en:'Why it matters',ru:'Почему это важно','zh-Hans':'为什么重要'};
+ for(const language of present){const a=p[language]!;
+  if(a.blocks?.some(b=>b.type==='table'&&!p.sources.some(s=>s.url===b.sourceUrl)))ctx.addIssue({code:'custom',message:'Table must cite a package source'});
+  if(p.research&&!a.blocks?.some(b=>b.type==='heading'&&b.text===why[language]))ctx.addIssue({code:'custom',path:[language,'blocks'],message:'Why it matters section required'});
+ }
+ if((p.ru||p['zh-Hans'])&&!p.research)ctx.addIssue({code:'custom',message:'Multilingual packages require their source and language checks'});
+ if(p.period!=='2026-11-01/2026-11-07'&&!p.period.startsWith('standalone:')&&!p.research)ctx.addIssue({code:'custom',message:'New weekly editions require the evidence and importance template'});
+ if(p.research){
+  for(const language of present)if(p.research.languageChecks.filter(c=>c.language===language).length!==1)ctx.addIssue({code:'custom',message:'Exactly one check per present language required'});
+  if(p.research.dossier.claims.some(c=>!p.sources.some(s=>s.url===c.source)))ctx.addIssue({code:'custom',message:'Claim must cite a package source'});
+  if(p.research.videoBrief?.claimIds.some(id=>!p.research!.dossier.claims.some(c=>c.id===id)))ctx.addIssue({code:'custom',message:'Video idea must reference dossier claims'});
+  if(p.verification.status==='checked_summary'&&(p.research.sourceReview.status==='blocked'||p.research.languageChecks.some(c=>c.status==='blocked')))ctx.addIssue({code:'custom',message:'Blocked checks cannot be marked release-ready'});
+ }
+});
 export type NewsPackage=z.infer<typeof newsPackageSchema>;
 /** Suggestions never dispatch work. News dispatch accepts only selected news deliveries. */
 export function newsExecutionKind(kind:string){

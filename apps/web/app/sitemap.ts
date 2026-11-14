@@ -1,13 +1,44 @@
 import type {MetadataRoute} from 'next';
-import {digestPath,newsOrigin,newsPath,newsReleases} from '../lib/news';
+import {digestPath,methodPath,newsOrigin,newsPath,newsReleases} from '../lib/news';
+import {languages,homePath,type Language} from '../lib/news-languages';
 import {topics,hasTopic,topicPath,publicListingPath,type NewsTopic} from '../lib/news-presentation';
+
 export const dynamic='force-dynamic';
+
 export default async function sitemap():Promise<MetadataRoute.Sitemap> {
   const rows=await newsReleases();
   if(!rows.length)return [];
-  const pair=(en:string,es:string)=>({en:newsOrigin+en,es:newsOrigin+es,'x-default':newsOrigin+es});
-  const listings=['news','topics',...(rows.some(r=>r.content.article.type==='analysis')?['analysis']:[]),...(rows.some(r=>r.content.period==='2026-11-01/2026-11-07')?['archive']:[])] as ('news'|'topics'|'analysis'|'archive')[];
-  const paths=[{en:'/en',es:'/'},{en:'/en/method',es:'/politica'},...(rows.some(r=>r.content.period==='2026-11-01/2026-11-07')?[{en:digestPath('en'),es:digestPath('es')}]:[]),...listings.map(kind=>({en:publicListingPath('en',kind),es:publicListingPath('es',kind)})),...Object.keys(topics).filter(t=>rows.some(r=>hasTopic(r,t))).map(t=>({en:topicPath('en',t as NewsTopic),es:topicPath('es',t as NewsTopic)}))];
-  return [...rows.map(r=>({url:newsOrigin+newsPath(r.language,r.slug),lastModified:r.modified_at??r.published_at,alternates:{languages:pair(newsPath('en',r.slug),newsPath('es',r.slug))}})),
-    ...paths.flatMap(paths=>(['en','es'] as const).map(lang=>({url:newsOrigin+paths[lang],alternates:{languages:pair(paths.en,paths.es)}})))];
+
+  const alternatives=(paths:Partial<Record<Language,string>>)=>{
+    const result:Record<string,string>=Object.fromEntries(Object.entries(paths).map(([language,path])=>[language,newsOrigin+path]));
+    if(paths.es)result['x-default']=newsOrigin+paths.es;
+    return result;
+  };
+  const localizedPages=(eligible:typeof rows,pathFor:(language:Language)=>string):MetadataRoute.Sitemap=>{
+    const available=languages.filter(language=>eligible.some(row=>row.language===language));
+    const paths=Object.fromEntries(available.map(language=>[language,pathFor(language)]));
+    return available.map(language=>({url:newsOrigin+pathFor(language),alternates:{languages:alternatives(paths)}}));
+  };
+
+  const articles:MetadataRoute.Sitemap=rows.map(row=>{
+    const available=row.availableLanguages??[row.language];
+    const translations=rows.filter(other=>other.story_id===row.story_id&&available.includes(other.language));
+    // Resolve each released translation's own slug; an absent edition has no URL.
+    const paths=Object.fromEntries(translations.map(other=>[other.language,newsPath(other.language,other.slug)]));
+    return {url:newsOrigin+newsPath(row.language,row.slug),lastModified:row.modified_at??row.published_at,alternates:{languages:alternatives(paths)}};
+  });
+  const weeklyRows=rows.filter(row=>/^\d{4}-\d{2}-\d{2}\/\d{4}-\d{2}-\d{2}$/.test(row.content.period));
+  const starts=[...new Set(weeklyRows.map(row=>row.content.period.slice(0,10)))].sort();
+
+  return [
+    ...articles,
+    ...localizedPages(rows,homePath),
+    ...localizedPages(rows,methodPath),
+    ...localizedPages(rows,language=>publicListingPath(language,'news')),
+    ...localizedPages(rows,language=>publicListingPath(language,'topics')),
+    ...localizedPages(rows.filter(row=>row.content.article.type==='analysis'),language=>publicListingPath(language,'analysis')),
+    ...localizedPages(weeklyRows,language=>publicListingPath(language,'archive')),
+    ...starts.flatMap(start=>localizedPages(weeklyRows.filter(row=>row.content.period.startsWith(start+'/')),language=>digestPath(language,start))),
+    ...Object.keys(topics).flatMap(topic=>localizedPages(rows.filter(row=>hasTopic(row,topic)),language=>topicPath(language,topic as NewsTopic)))
+  ];
 }
