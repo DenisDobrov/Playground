@@ -4,6 +4,7 @@ import {readFile,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {validateRemoteTarget} from './database-target.mjs';
 const directory=process.argv[2];if(!directory||!process.argv.includes('--apply-news-003'))throw Error('Verified private backup directory and explicit NEWS-003 apply flag required');
+const historicalDirectory=process.argv.find(a=>a.startsWith('--historical='))?.slice('--historical='.length);
 const before=JSON.parse(await readFile(directory+'/before.json','utf8'));
 const restore=JSON.parse(await readFile(directory+'/restore-result.json','utf8'));
 const rehearsal=JSON.parse(await readFile(directory+'/rehearsal-result.json','utf8'));
@@ -20,7 +21,13 @@ try{
  await db.connect();await db.query('begin');await db.query("select pg_advisory_xact_lock(hashtextextended('dobrov-academy-install',0))");
  const journal=(await db.query('select version,checksum from academy.install_migrations order by version')).rows;
  if(JSON.stringify(journal)!==JSON.stringify(before.installed))throw Error('Installation journal changed since backup');
- for(const migration of journal)if(hash(await readFile(new URL('../supabase/migrations/'+migration.version,import.meta.url),'utf8'))!==migration.checksum)throw Error('Installed migration checksum differs');
+ for(const migration of journal){
+  if(!/^[0-9]{12}_[a-z0-9_]+\.sql$/.test(migration.version))throw Error('Unexpected journal filename');
+  let original;
+  try{original=await readFile(new URL('../supabase/migrations/'+migration.version,import.meta.url),'utf8');}
+  catch(e){if(e.code!=='ENOENT'||!historicalDirectory)throw e;original=await readFile(historicalDirectory+'/'+migration.version,'utf8');}
+  if(hash(original)!==migration.checksum)throw Error('Installed migration checksum differs');
+ }
  if(JSON.stringify(await fingerprints())!==JSON.stringify(before.fingerprints))throw Error('Academy data changed since backup');
  await db.query(sql);await db.query('insert into academy.install_migrations(version,checksum) values($1,$2)',[name,checksum]);
  if(JSON.stringify((await fingerprints()).filter(t=>t.table!=='install_migrations'))!==JSON.stringify(before.fingerprints.filter(t=>t.table!=='install_migrations')))throw Error('Existing data unexpectedly changed');
