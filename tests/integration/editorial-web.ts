@@ -357,6 +357,17 @@ try {
   assert.equal(savedNews.comment,'');assert.equal(savedNews.suggested_video,false);assert.equal(savedNews.suggested_science,true);assert.equal(savedNews.flags_origin,'owner_set');
   assert.ok(!(await (await editor.request(newsPath)).text()).includes(`value="${newsPackage}"`),'Decided package leaves new inbox');
   const allNews=await (await editor.request(newsPath+'?view=all')).text();assert.ok(allNews.includes(`value="${newsPackage}"`));
+  const mediaForm=formFrom(allNews,'youtubeUrl',newsStory);mediaForm.set('youtubeUrl','https://youtu.be/testVideo01?si=ignored');mediaForm.set('youtubeLanguage','en');mediaForm.set('mediaAction','save');
+  assert.ok((await reviewer.post(mediaForm,origin,newsPath)).status>=400,'Reviewer cannot edit related media');
+  assert.ok((await editor.post(mediaForm,'https://attacker.example',newsPath)).status>=400,'Media edit rejects cross-origin requests');
+  const releasesBefore=(await db.query('select * from academy.news_releases where story_id=$1 order by id',[newsStory])).rows;
+  assert.match((await editor.post(mediaForm,origin,newsPath)).headers.get('location')||'',/notice=media_saved/);
+  assert.match((await (await anon.request('/en/news/'+newsContent.slug)).text()),/href="https:\/\/www.youtube.com\/watch\?v=testVideo01"/);
+  assert.equal((await db.query('select version from academy.news_state where story_id=$1',[newsStory])).rows[0].version,savedNews.version,'Media edits preserve approval revision');
+  const removeMedia=formFrom(await (await editor.request(newsPath+'?view=all')).text(),'youtubeUrl',newsStory);removeMedia.set('mediaAction','remove');removeMedia.set('youtubeLanguage','en');
+  assert.match((await editor.post(removeMedia,origin,newsPath)).headers.get('location')||'',/notice=media_saved/);
+  assert.ok(!(await (await anon.request('/en/news/'+newsContent.slug)).text()).includes('news-related-video'));
+  assert.deepEqual((await db.query('select * from academy.news_releases where story_id=$1 order by id',[newsStory])).rows,releasesBefore,'Metadata edits do not create or rewrite publications');
   for(const path of ['/noticias/','/en/news/']){const published=await anon.request(path+newsContent.slug);assert.equal(published.status,200);const html=await published.text();assert.match(html,/rel="canonical"/);assert.match(html,/hrefLang="(?:en|es)"/i);assert.ok(!html.includes(newsHash),'Private source provenance is absent from public DTO');}
   const rejectNews=formFrom(allNews,'package',newsPackage);rejectNews.set('decision','reject');rejectNews.set('comment','');
   assert.match((await editor.post(rejectNews,origin,newsPath)).headers.get('location')||'',/notice=saved/);
@@ -375,6 +386,7 @@ try {
     // Local fixture cleanup only: privileged transaction bypasses immutability triggers, never production.
     await db.query('begin');await db.query('set local session_replication_role=replica');
     if(newsBatch){
+      await db.query('delete from academy.news_metadata_events where story_id=$1',[newsStory]);
       for(const table of ['news_delivery_events','news_outbox','news_releases','news_decisions']){
         const condition=table==='news_delivery_events'?'outbox_id in (select id from academy.news_outbox where package_id in (select id from academy.news_packages where batch_id=$1))':'package_id in (select id from academy.news_packages where batch_id=$1)';
         await db.query(`delete from academy.${table} where ${condition}`,[newsBatch]);

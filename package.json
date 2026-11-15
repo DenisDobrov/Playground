@@ -11,6 +11,7 @@
     "node": ">=22.14.0"
   },
   "scripts": {
+    "test:news:media": "tsx tests/integration/news-media.ts",
     "test:news:languages": "tsx tests/integration/news-languages.ts",
     "test:news:languages:web": "tsx tests/integration/news-languages-web.ts",
     "test:news:seo": "tsx tests/integration/news-seo-web.ts",

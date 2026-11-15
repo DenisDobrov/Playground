@@ -14,6 +14,7 @@ const analysis=structuredClone(p);analysis.slug='standalone-analysis-fixture';an
 for(const language of ['es','en'] as const){analysis[language]={...analysis[language],type:'analysis',sourcePublicationMonth:'2026-06',blocks:[{type:'paragraph',text:analysis[language].paragraphs[0]},{type:'heading',text:'<script>Never executable</script>'},{type:'table',caption:'Conditional scenarios',headers:['Scenario','MW'],rows:[['Synthetic','12']],note:'Scenario, not a measurement',sourceUrl:p.sources[0].url}]};releases.push({id:`analysis-${language}`,package_id:'analysis-fixture',story_id:'analysis-synthetic',language,slug:analysis.slug,published_at:'2026-11-07T14:00:00.000Z',content:{article:analysis[language],sources:analysis.sources,period:analysis.period,section:1,verification:analysis.verification}});}
 let reads=0;
 const api=createServer((req,res)=>{
+  if(req.method==='GET'&&req.url?.startsWith('/rest/v1/news_public_media?')){assert.equal(req.headers.authorization,'Bearer sb_publishable_test_only');res.writeHead(200,{'Content-Type':'application/json'}).end('[]');return;}
   if(req.method!=='GET'||!req.url?.startsWith('/rest/v1/news_releases?')){res.writeHead(404).end();return;}
   assert.equal(req.headers.authorization,'Bearer sb_publishable_test_only');reads++;
   res.writeHead(200,{'Content-Type':'application/json'}).end(JSON.stringify(releases));

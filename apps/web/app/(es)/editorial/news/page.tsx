@@ -5,7 +5,7 @@ import {catalogSelection,type NewsCatalogEntry} from '../../../../lib/news-catal
 import {signOut} from '../../login/actions';
 import {languages,type Language} from '../../../../lib/news-languages';
 export const dynamic='force-dynamic';
-const notices:Record<string,string>={saved:'Решение, комментарий и предложения сохранены.',conflict:'Пакет изменился. Проверьте актуальную версию и примите решение заново.',invalid:'Не удалось прочитать решение.',failed:'Решение не сохранено. Повторите после обновления страницы.'};
+const notices:Record<string,string>={saved:'Решение, комментарий и предложения сохранены.',conflict:'Пакет изменился. Проверьте актуальную версию и примите решение заново.',invalid:'Не удалось прочитать решение.',failed:'Изменение не сохранено. Повторите после обновления страницы.',media_saved:'Ссылка YouTube сохранена. Статья и решение о публикации не изменены.',media_invalid:'Нужна ссылка на видео YouTube: watch, youtu.be, shorts, live или embed. Пустое поле удаляет ссылку.',media_conflict:'Ссылка была изменена в другой вкладке. Обновите страницу и проверьте актуальное значение.'};
 export default async function Page({searchParams}:{searchParams:Promise<{view?:string;notice?:string;q?:string;page?:string;language?:string}>}) {
   const params=await searchParams;const {notice}=params;const {client,role}=await requireMember();
   const initialLanguage=languages.includes(params.language as Language)?params.language as Language:'es';
@@ -17,7 +17,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     if(chunk.error)throw new Error('Newsroom unavailable');entries.push(...chunk.data);if(chunk.data.length<200)break;
   }
   const selection=catalogSelection(entries,params),{view}=selection;
-  const result=selection.items.length?await client.from('news_state').select('story_id,package_id,version,decision,comment,suggested_video,suggested_science,flags_origin,package:news_packages!news_state_package_id_fkey(id,version,content)').in('package_id',selection.items.map(r=>r.package_id)).overrideTypes<NewsCardData[],{merge:false}>():{data:[],error:null};
+  const result=selection.items.length?await client.from('news_state').select('story_id,package_id,version,decision,comment,suggested_video,suggested_science,flags_origin,youtube_id,youtube_language,youtube_configured,media_version,package:news_packages!news_state_package_id_fkey(id,version,content)').in('package_id',selection.items.map(r=>r.package_id)).overrideTypes<NewsCardData[],{merge:false}>():{data:[],error:null};
   if(result.error)throw new Error('Newsroom unavailable');
   const rows=(result.data||[]).sort((a,b)=>selection.items.findIndex(r=>r.package_id===a.package_id)-selection.items.findIndex(r=>r.package_id===b.package_id));
   const deliveries=rows.length?await client.from('news_outbox').select('id,package_id,channel,state,remote_url,error_code').in('package_id',rows.map(r=>r.package_id)).limit(1000):{data:[],error:null};
@@ -31,7 +31,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     <form className="publication-search" action="/editorial/news" role="search"><input type="hidden" name="view" value={view}/><label htmlFor="private-news-query">Поиск по названию EN / ES</label><div><input id="private-news-query" type="search" name="q" defaultValue={selection.query} maxLength={200}/><button>Найти</button></div></form><p>{selection.count} записей</p>
     {notice&&notices[notice]&&<p role="status">{notices[notice]}</p>}
     {!rows.length&&<p>В этом списке пока нет новостей.</p>}
-    {rows.map(row=><NewsCard key={`${row.package_id}:${row.version}:${initialLanguage}`} initialLanguage={initialLanguage} row={row} requestId={randomUUID()} editor={role==='editor'} compact={view==='video'} publications={((publications.data||[]) as NewsPublication[]).filter(r=>r.story_id===row.story_id)} deliveries={(deliveries.data||[] as NewsDelivery[]).filter(d=>d.package_id===row.package_id)}/>)}
+    {rows.map(row=><NewsCard key={`${row.package_id}:${row.version}:${row.media_version}:${initialLanguage}`} initialLanguage={initialLanguage} row={row} requestId={randomUUID()} editor={role==='editor'} compact={view==='video'} publications={((publications.data||[]) as NewsPublication[]).filter(r=>r.story_id===row.story_id)} deliveries={(deliveries.data||[] as NewsDelivery[]).filter(d=>d.package_id===row.package_id)}/>)}
     {selection.pages>1&&<nav className="pagination" aria-label="Страницы">{selection.page>1&&<a href={pageUrl(selection.page-1)}>← Назад</a>}<span>{selection.page} / {selection.pages}</span>{selection.page<selection.pages&&<a href={pageUrl(selection.page+1)}>Далее →</a>}</nav>}
   </main>;
 }

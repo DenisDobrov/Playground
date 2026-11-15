@@ -19,6 +19,7 @@ jobs:
       - run: npm run test:research:integration
       - run: npm run test:news:integration
       - run: npm run test:news:languages
+      - run: npm run test:news:media
       - run: npm run test:content:integration
       - run: npm run build
       - run: npm run test:editorial:web

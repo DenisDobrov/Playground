@@ -37,7 +37,13 @@ const stored=[...releases,future];
 const visible=stored.filter(r=>r.published_at<='2026-11-14T23:59:59.999Z');
 let reads=0;
 const unexpected:string[]=[];
+const media=new Map([['four-language-story',{youtube_id:'testVideo01',youtube_language:'en',youtube_configured:true}],['four-language-analysis',{youtube_id:'testVideo01',youtube_language:'en',youtube_configured:true}]]);
 const api=createServer((req,res)=>{
+  if(req.method==='GET'&&req.url?.startsWith('/rest/v1/news_public_media?')){
+    assert.equal(req.headers.authorization,'Bearer sb_publishable_test_only');
+    const story=new URL(req.url,'http://fixture').searchParams.get('story_id')?.replace(/^eq\./,'');
+    const row=media.get(story??'');res.writeHead(200,{'Content-Type':'application/json'}).end(JSON.stringify(row?[row]:[]));return;
+  }
   if(req.method!=='GET'||!req.url?.startsWith('/rest/v1/news_releases?')){unexpected.push(`${req.method} ${req.url}`);res.writeHead(404).end();return;}
   if(req.headers.authorization!=='Bearer sb_publishable_test_only'||req.headers.apikey!=='sb_publishable_test_only'){unexpected.push('Unexpected authentication');res.writeHead(401).end();return;}
   if(req.headers['accept-profile']!=='academy'){unexpected.push('Unexpected schema');res.writeHead(400).end();return;}
@@ -73,6 +79,10 @@ try{
       const path=newsPath(language,slug),{response,html}=await page(path,{headers:{'Accept-Language':'es','Cookie':'da-language=es'}});
       assert.equal(response.status,200);assert.equal(response.headers.get('referrer-policy'),'strict-origin');
       assert.ok(html.includes(`<h1>${titles[language]}</h1>`));assert.ok(html.includes(`lang="${language}"`));
+      assert.ok(html.includes('href="https://www.youtube.com/watch?v=testVideo01"'));
+      assert.ok(html.includes({es:'Ver vídeo en YouTube',en:'Watch on YouTube',ru:'Смотреть видео на YouTube','zh-Hans':'在 YouTube 上观看视频'}[language]));
+      assert.ok(html.includes({es:'Vídeo en inglés',en:'Video in English',ru:'Видео на английском','zh-Hans':'视频语言：英语'}[language]));
+      assert.ok(!html.includes('<iframe'),'Generic related links do not load an embedded player');
       assert.ok(html.includes(`<h2>${why[language]}</h2>`));assert.ok(html.includes(`<h2>${limits[language]}</h2>`));
       assert.equal(attribute(canonicalOf(html)!,'href'),canonical+path);
       assert.deepEqual(alternates(html),expectedAlternates(languages,slug));assert.ok(!robots(html).includes('noindex'));
@@ -157,7 +167,13 @@ try{
     }
     assert.equal((await fetch(origin+'/share/zh/'+slug)).status,404,'Release key is zh-Hans, not an invented language key');
   });
-  assert.deepEqual(unexpected,[],'Only anonymous release REST reads are permitted');assert.ok(reads>0);
+  await check('shared video, absent URL and explicit removal',async()=>{
+    assert.ok((await page(newsPath('en',analysisSlug))).html.includes('href="https://www.youtube.com/watch?v=testVideo01"'));
+    assert.ok(!(await page(newsPath('es',legacySlug))).html.includes('news-related-video'));
+    media.delete('four-language-story');
+    for(const language of languages){const {html}=await page(newsPath(language,slug));assert.ok(!html.includes('news-related-video'));assert.ok(!html.includes('youtube.com/watch'));}
+  });
+  assert.deepEqual(unexpected,[],'Only anonymous published release/media REST reads are permitted');assert.ok(reads>0);
   console.log(JSON.stringify({passed:failures.length===0,checksPassed:passed.length,checks:passed,failures,anonymousFixtureReads:reads,productionDataModified:false,proofDirectory:process.env.SEO_PROOF_DIR??null},null,2));
   if(failures.length)throw new Error(`${failures.length} multilingual HTTP checks failed`);
 }catch(error){console.error(diagnostics);throw error;}finally{
