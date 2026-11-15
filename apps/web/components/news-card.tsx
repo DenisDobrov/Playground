@@ -19,9 +19,9 @@ export function NewsCard({row,requestId,editor,deliveries,publications=[],compac
   const legacyVideo=videoForNews({story_id:row.story_id,package_id:row.package_id,slug:p.slug,language});
   const videoId=row.youtube_configured?row.youtube_id:legacyVideo?.id;
   const videoLanguage=row.youtube_configured?row.youtube_language:legacyVideo?'en':null;
-  const review=<div className="news-editor-card"><p className="eyebrow">{p.period.startsWith('standalone:')?'Анализ':`№${p.section}`} · {p.period} · {row.decision==='approve'?'Разрешён выпуск':row.decision==='reject'?'Отклонено':'Ожидает решения'}</p>
+  const review=<div className="news-editor-card"><p className="eyebrow">{article.type==='analysis'?'Анализ':article.type==='news'?'Новость':`№${p.section}`} · {p.period} · {row.decision==='approve'?'Разрешён выпуск':row.decision==='reject'?'Отклонено':'Ожидает решения'}</p>
     <div role="group" aria-label="Язык новости">{languages.filter(l=>p[l]).map(l=><button key={l} type="button" aria-pressed={language===l} onClick={()=>setLanguage(l)}>{languageNames[l]}</button>)}</div>
-    <section lang={language}><h2>{article.title}</h2><NewsBody article={article} language={language}/><aside className="news-limit">{article.limitations}</aside></section>
+    <section lang={language}><h2>{article.title}</h2><NewsBody article={article} language={language}/>{!article.paragraphs.includes(article.limitations)&&<aside className="news-limit">{article.limitations}</aside>}</section>
     <p>{p.verification.status==='checked_summary'?'Пересказ сверен с источниками.':'Выпуск заблокирован: '+p.verification.reason} Независимое научное воспроизведение не выполнялось.</p>
     {p.research&&<NewsResearch research={p.research}/>}
     <p role="status">{publications.some(r=>r.package_id===row.package_id)?'Текущий пакет опубликован на сайте.':publications.length?'На сайте опубликована предыдущая версия; текущий пакет — черновик.':'На сайте ещё не опубликовано.'} {deliveries.length>0&&<>Каналы: {delivered} из {deliveries.length} опубликовано{deliveries.some(d=>['failed','uncertain'].includes(d.state))?' · требуется проверка':''}.</>}</p>

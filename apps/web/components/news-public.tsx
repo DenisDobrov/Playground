@@ -28,7 +28,7 @@ export async function NewsArticle({language:requested,slug}:{language:Language;s
     {release.modified_at!==release.first_published_at&&<p><time dateTime={release.modified_at}>{tr(language,"Actualizado","Updated","Обновлено","更新日期")}: {new Date(release.modified_at??release.published_at).toLocaleDateString(languageLocale[language],{timeZone:'UTC',dateStyle:'long'})}</time></p>}
     {article.sourcePublicationMonth&&<p>{tr(language,"Número de la revista científica","Research journal issue","Выпуск научного журнала","期刊卷期")}: <time dateTime={article.sourcePublicationMonth}>{new Date(article.sourcePublicationMonth+'-01T00:00:00Z').toLocaleDateString(languageLocale[language],{month:'long',year:'numeric',timeZone:'UTC'})}</time>.</p>}
     </header><div className="publication-article-body">{media?.youtube_configured&&<NewsVideo release={release} media={media}/>}<NewsBody article={article} language={language}/>
-    <aside className="news-limit"><h2>{tr(language,"Lo que esto no demuestra","What this does not establish","Чего результат не доказывает","这一结果不能证明什么")}</h2><p>{article.limitations}</p></aside>
+    {!article.paragraphs.includes(article.limitations)&&<aside className="news-limit"><h2>{tr(language,"Lo que esto no demuestra","What this does not establish","Чего результат не доказывает","这一结果不能证明什么")}</h2><p>{article.limitations}</p></aside>}
     {!media?.youtube_configured&&<NewsVideo release={release}/>}
     {release.content.eventDates&&<NewsTimeline dates={release.content.eventDates} language={language}/>}
     <h2>{tr(language,"Fuentes originales y fechas","Original sources and dates","Первоисточники и даты","原始来源与日期")}</h2>

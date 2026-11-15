@@ -23,3 +23,11 @@ The explicit owner candidate instruction is recorded separately from AI suggesti
 Run typecheck, unit tests, demo and build; local DB tests cover editor/reviewer/outsider/anon access, add/replace/remove, replay/conflict, shared video IDs, draft privacy, legacy removal and unchanged release/approval history. Built-web tests cover four labels, English-language notice, no empty control, safe normalization and unchanged SEO/routes.
 
 Before cloud migration: Academy-only backup, isolated verified restore, local rehearsal, installed migration checksums and preserved legacy schema/ACLs. Apply only 017; never reset the shared database or apply unrelated migration 013. Deploy the reviewed build, then inspect authenticated cards and public pages. Real publication requires the existing owner decision. Record deployed versus prepared status and actual checks in private receipts.
+
+## Verification, 15 November 2026
+
+Passed locally: 225 unit tests; typecheck, demo and production build; NEWS-001, NEWS-003 and NEWS-004 database integration; built editorial HTTP add/remove, CSRF and role checks with unchanged releases; 22 four-language HTTP checks; SEO HTTP checks. A 51-table Academy backup was restored with matching fingerprints and 017 was rehearsed on the isolated copy. New private intake subsequently changed the cloud data, so take a fresh backup before applying.
+
+Prepared canonical Stories: R01 `57217bc4-1cd9-4e5b-9ab2-913bf128f28e`, R02 `a8a873ea-d21f-4195-b69d-b3a7d6bb190a`, R03 `542fbaf1-7867-49ea-8823-2e7a3e57a074`. Authenticated UI inspection confirmed all 12 translations and all three checked flags in Video Ideas. Source checks are agent checks with documented limitations; no independent reproduction. Exact-package human decisions remain pending. Candidate provenance must still be recorded with `news-robotics-flags.mjs` after 017 is installed.
+
+Automatic permission review rejected the production migration as lacking specific cloud-schema approval. The owner has been asked to approve exact migration 017; deployment remains held while that answer is pending. No production DDL was executed. New article import preserved 130 existing releases and 45 decisions; no publication call was made.
