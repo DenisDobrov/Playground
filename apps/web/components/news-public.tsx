@@ -1,7 +1,7 @@
 import {selectText as tr,homePath,languageLocale,type Language} from '../lib/news-languages';
 import Link from 'next/link';
 import {notFound} from 'next/navigation';
-import {digestPath,methodPath,newsPath,newsReleases,newsArticleJsonLd,serializeJsonLd,resolveNewsRelease} from '../lib/news';
+import {digestPath,methodPath,newsPath,newsReleases,newsArticleJsonLd,serializeJsonLd,resolveNewsRelease,publishedNewsMedia} from '../lib/news';
 import {PublicPageAnalytics} from './public-page-analytics';
 import {NewsBody} from './news-body';
 import {NewsVideo} from './news-video';
@@ -15,6 +15,7 @@ export async function NewsArticle({language:requested,slug}:{language:Language;s
   const releases=await newsReleases();
   const release=resolveNewsRelease(releases,requested,slug);
   if (!release) notFound();
+  const media=await publishedNewsMedia(release.story_id);
   const language=release.language,all=orderedNews(releases,language);
   const en=language==='en'; const {article,sources}=release.content;
   const topic=topicOf(article,slug),related=all.filter(r=>r.story_id!==release.story_id&&topicOf(r.content.article,r.slug)===topic).slice(0,3);
@@ -26,9 +27,9 @@ export async function NewsArticle({language:requested,slug}:{language:Language;s
     <header className="publication-article-header"><p className="publication-category"><Link href={topicPath(language,topic)}>{topics[topic][language]}</Link><span>{article.type==='analysis'?(tr(language,"Análisis","Analysis","Аналитика","分析")):(tr(language,"Noticias de investigación","Research news","Новости исследований","研究新闻"))}</span></p><h1>{article.title}</h1><p className="publication-meta"><Link href={methodPath(language)}>{tr(language,"Por Dobrov Academy","By Dobrov Academy","Редакция Dobrov Academy","Dobrov Academy 编辑部")}</Link> · {tr(language,"Publicado","Published","Опубликовано","发布日期")}: <NewsDate release={release}/> · {readingMinutes(article)} min</p><ArticleLanguages available={release.availableLanguages??[language]} current={language} slug={release.slug} paths={release.languagePaths}/>
     {release.modified_at!==release.first_published_at&&<p><time dateTime={release.modified_at}>{tr(language,"Actualizado","Updated","Обновлено","更新日期")}: {new Date(release.modified_at??release.published_at).toLocaleDateString(languageLocale[language],{timeZone:'UTC',dateStyle:'long'})}</time></p>}
     {article.sourcePublicationMonth&&<p>{tr(language,"Número de la revista científica","Research journal issue","Выпуск научного журнала","期刊卷期")}: <time dateTime={article.sourcePublicationMonth}>{new Date(article.sourcePublicationMonth+'-01T00:00:00Z').toLocaleDateString(languageLocale[language],{month:'long',year:'numeric',timeZone:'UTC'})}</time>.</p>}
-    </header><div className="publication-article-body"><NewsBody article={article} language={language}/>
-    <aside className="news-limit"><h2>{tr(language,"Lo que esto no demuestra","What this does not establish","Чего результат не доказывает","这一结果不能证明什么")}</h2><p>{article.limitations}</p></aside>
-    <NewsVideo release={release}/>
+    </header><div className="publication-article-body">{media?.youtube_configured&&<NewsVideo release={release} media={media}/>}<NewsBody article={article} language={language}/>
+    {!article.paragraphs.includes(article.limitations)&&<aside className="news-limit"><h2>{tr(language,"Lo que esto no demuestra","What this does not establish","Чего результат не доказывает","这一结果不能证明什么")}</h2><p>{article.limitations}</p></aside>}
+    {!media?.youtube_configured&&<NewsVideo release={release}/>}
     {release.content.eventDates&&<NewsTimeline dates={release.content.eventDates} language={language}/>}
     <h2>{tr(language,"Fuentes originales y fechas","Original sources and dates","Первоисточники и даты","原始来源与日期")}</h2>
     <ol>{sources.map(s=><li key={s.url}><a href={s.url} rel="noopener noreferrer">{s.title}</a><p>{({journal:tr(language,'Artículo científico','Journal article','Журнальная статья','期刊论文'),preprint:tr(language,'Preprint','Preprint','Препринт','预印本'),institution:tr(language,'Institución','Institution','Научная организация','研究机构'),vendor:tr(language,'Desarrollador','Developer','Разработчик','开发者'),coverage:tr(language,'Cobertura','Coverage','Освещение','报道')}[s.kind])} · {tr(language,"Acceso","Access","Доступ","访问范围")}: {s.access==='full_text'?(tr(language,"secciones pertinentes del texto completo","relevant full-text sections","проверенные разделы полного текста","已核对的全文相关部分")):s.access==='abstract'?(tr(language,"solo resumen","abstract only","только аннотация","仅摘要")):s.access==='metadata_only'?(tr(language,"solo referencia bibliográfica","bibliographic reference only","только библиографическая запись","仅书目信息")):(tr(language,"comunicado","announcement","сообщение","公告"))}. {tr(language,"Estudio","Study","Исследование","研究")}: {s.studyDate||'—'}; {tr(language,"anuncio","announcement","сообщение","公告")}: {s.announcementDate||'—'}.</p>{s.related?.map(r=><p key={r.url}><a href={r.url}>{r.label}</a></p>)}</li>)}</ol>

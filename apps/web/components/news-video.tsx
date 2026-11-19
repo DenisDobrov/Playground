@@ -1,7 +1,17 @@
 import type {NewsRelease} from '../lib/news-seo';
 import {videoForNews} from '../lib/news-video';
+import {isYouTubeId,youtubeLinkLabels,videoLanguageLabel,type NewsMedia} from '../lib/youtube-links';
+import {selectText} from '../lib/news-languages';
 
-export function NewsVideo({release}:{release:NewsRelease}) {
+export function NewsVideo({release,media}:{release:NewsRelease;media?:NewsMedia|null}) {
+  if(media?.youtube_configured){
+    if(!isYouTubeId(media.youtube_id))return null;
+    const label=videoLanguageLabel(release.language,media.youtube_language);
+    return <aside className="news-video news-related-video" aria-label={selectText(release.language,'Vídeo relacionado','Related video','Видео по теме','相关视频')}>
+      <p><a className="news-video-link" href={'https://www.youtube.com/watch?v='+media.youtube_id} rel="noopener noreferrer">{youtubeLinkLabels[release.language]}</a></p>
+      {label&&<p className="news-video-disclosure">{label}</p>}
+    </aside>;
+  }
   const video=videoForNews(release);
   if(!video)return null;
   return <section className="news-video" aria-labelledby="news-video-title">

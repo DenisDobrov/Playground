@@ -1,13 +1,14 @@
 'use client';
 import {useState} from 'react';
 import type {NewsPackage} from '@science/core';
-import {decideNews} from '../app/(es)/editorial/news/actions';
+import {decideNews,saveNewsYouTube} from '../app/(es)/editorial/news/actions';
+import {videoForNews} from '../lib/news-video';
 import {NewsBody} from './news-body';
 import {newsPath} from '../lib/news-seo';
 import {topicOf,topics} from '../lib/news-presentation';
 import {languages,languageNames,type Language} from '../lib/news-languages';
 import {NewsResearch} from './news-research';
-export interface NewsCardData {story_id:string;package_id:string;version:number;decision:string|null;comment:string;suggested_video:boolean;suggested_science:boolean;flags_origin:string;package:{id:string;version:number;content:NewsPackage};}
+export interface NewsCardData {story_id:string;package_id:string;version:number;decision:string|null;comment:string;suggested_video:boolean;suggested_science:boolean;flags_origin:string;youtube_id?:string|null;youtube_language?:Language|null;youtube_configured?:boolean;media_version?:number;package:{id:string;version:number;content:NewsPackage};}
 export interface NewsDelivery {id:string;package_id:string;channel:string;state:string;remote_url:string|null;error_code:string|null;}
 export interface NewsPublication {package_id:string;story_id:string;language:Language;slug:string;published_at:string;}
 export function NewsCard({row,requestId,editor,deliveries,publications=[],compact=false,initialLanguage='es'}:{row:NewsCardData;requestId:string;editor:boolean;deliveries:NewsDelivery[];publications?:NewsPublication[];compact?:boolean;initialLanguage?:Language}) {
@@ -15,15 +16,24 @@ export function NewsCard({row,requestId,editor,deliveries,publications=[],compac
   const labels:Record<string,string>={pending:'Ожидает',sending:'Отправляется',published:'Опубликовано',blocked:'Нужен доступ',failed:'Ошибка',uncertain:'Нужна проверка результата',cancelled:'Отменено'};
   const delivered=deliveries.filter(d=>d.state==='published').length;
   const recommendation=p.suggestions.videoRecommendation?.[language==='en'?'en':'es'],rationale=recommendation?.reason||p.suggestions.videoReason;
-  const review=<div className="news-editor-card"><p className="eyebrow">{p.period.startsWith('standalone:')?'Анализ':`№${p.section}`} · {p.period} · {row.decision==='approve'?'Разрешён выпуск':row.decision==='reject'?'Отклонено':'Ожидает решения'}</p>
+  const legacyVideo=videoForNews({story_id:row.story_id,package_id:row.package_id,slug:p.slug,language});
+  const videoId=row.youtube_configured?row.youtube_id:legacyVideo?.id;
+  const videoLanguage=row.youtube_configured?row.youtube_language:legacyVideo?'en':null;
+  const review=<div className="news-editor-card"><p className="eyebrow">{article.type==='analysis'?'Анализ':article.type==='news'?'Новость':`№${p.section}`} · {p.period} · {row.decision==='approve'?'Разрешён выпуск':row.decision==='reject'?'Отклонено':'Ожидает решения'}</p>
     <div role="group" aria-label="Язык новости">{languages.filter(l=>p[l]).map(l=><button key={l} type="button" aria-pressed={language===l} onClick={()=>setLanguage(l)}>{languageNames[l]}</button>)}</div>
-    <section lang={language}><h2>{article.title}</h2><NewsBody article={article} language={language}/><aside className="news-limit">{article.limitations}</aside></section>
+    <section lang={language}><h2>{article.title}</h2><NewsBody article={article} language={language}/>{!article.paragraphs.includes(article.limitations)&&<aside className="news-limit">{article.limitations}</aside>}</section>
     <p>{p.verification.status==='checked_summary'?'Пересказ сверен с источниками.':'Выпуск заблокирован: '+p.verification.reason} Независимое научное воспроизведение не выполнялось.</p>
     {p.research&&<NewsResearch research={p.research}/>}
     <p role="status">{publications.some(r=>r.package_id===row.package_id)?'Текущий пакет опубликован на сайте.':publications.length?'На сайте опубликована предыдущая версия; текущий пакет — черновик.':'На сайте ещё не опубликовано.'} {deliveries.length>0&&<>Каналы: {delivered} из {deliveries.length} опубликовано{deliveries.some(d=>['failed','uncertain'].includes(d.state))?' · требуется проверка':''}.</>}</p>
     {!compact&&rationale&&<aside className="news-ai-recommendation"><h3>AI recommendation / Recomendación de IA</h3><p lang={recommendation?language:undefined}>{rationale}</p>{recommendation&&<><p>{recommendation.visualAngle}</p><p>{recommendation.caveat}</p></>}<small>ИИ · {p.suggestions.videoRecommendation?.version??'news-release/1'} · пакет v{row.package.version}. Это предложение, не ваш комментарий.</small></aside>}
     <details><summary>Источники и изменения</summary><ul>{p.sources.map(s=><li key={s.url}><a href={s.url}>{s.title}</a> · {s.access} · {s.studyDate||'дата исследования не установлена'} / {s.announcementDate||'без отдельного анонса'}<p>{s.finding}</p></li>)}</ul>{p.changes.map((c,i)=><p key={i}>{c.original} → {c.replacement}. {c.reason} <a href={c.source}>Источник</a></p>)}</details>
     {p.campaign&&<section aria-label="Статичная кампания"><h3>{p.campaign.title}</h3><p>Новая версия кампании требует нового решения ниже. Предыдущее разрешение не переносится. Изображение и канальные тексты входят в этот пакет.</p>{p.campaign.assets.filter(a=>a.language===language).map(a=><figure key={a.sha256}><img src={a.dataUrl} alt={a.alt} width={a.width} height={a.height} style={{width:'100%',maxWidth:432,height:'auto'}}/><figcaption>Оригинальная типографическая карточка Dobrov Academy · {a.language.toUpperCase()} · SHA256 {a.sha256}</figcaption></figure>)}</section>}
+    <details><summary>Видео YouTube</summary><p>Ссылка на уже опубликованный ролик. Сохранение не меняет статью и решение о её публикации.</p><form action={saveNewsYouTube}>
+      <input type="hidden" name="story" value={row.story_id}/><input type="hidden" name="request" value={requestId}/><input type="hidden" name="mediaVersion" value={row.media_version??0}/>
+      <fieldset disabled={!editor}><label>YouTube Video URL<input name="youtubeUrl" type="url" maxLength={2048} defaultValue={videoId?'https://www.youtube.com/watch?v='+videoId:''}/></label>
+      <label>Язык видео<select name="youtubeLanguage" defaultValue={videoLanguage??''}><option value="">Не указан</option>{languages.map(l=><option key={l} value={l}>{languageNames[l]}</option>)}</select></label>
+      <div className="news-decisions"><button name="mediaAction" value="save">Сохранить ссылку</button><button name="mediaAction" value="remove" formNoValidate>Удалить ссылку</button></div></fieldset>
+    </form></details>
     <details><summary>Версии для каналов</summary>{Object.entries(p.channelTexts).map(([channel,text])=><section key={channel}><h3>{channel}</h3><p lang="en" style={{whiteSpace:'pre-wrap'}}>{text.en}</p><p lang="es" style={{whiteSpace:'pre-wrap'}}>{text.es}</p></section>)}</details>
     <form action={decideNews}><input type="hidden" name="package" value={row.package_id}/><input type="hidden" name="version" value={row.version}/><input type="hidden" name="request" value={requestId}/>
       <fieldset disabled={!editor}><label>Комментарий <span>(необязательно)</span><textarea name="comment" maxLength={4000} defaultValue={row.comment}/></label>
