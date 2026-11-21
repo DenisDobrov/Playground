@@ -20,8 +20,10 @@ jobs:
       - run: npm run test:news:integration
       - run: npm run test:news:languages
       - run: npm run test:news:media
+      - run: npm run test:knowledge:integration
       - run: npm run test:content:integration
       - run: npm run build
+      - run: npm run test:knowledge:web
       - run: npm run test:editorial:web
       - run: npm run db:stop
         if: always()

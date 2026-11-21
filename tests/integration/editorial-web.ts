@@ -357,6 +357,24 @@ try {
   assert.equal(savedNews.comment,'');assert.equal(savedNews.suggested_video,false);assert.equal(savedNews.suggested_science,true);assert.equal(savedNews.flags_origin,'owner_set');
   assert.ok(!(await (await editor.request(newsPath)).text()).includes(`value="${newsPackage}"`),'Decided package leaves new inbox');
   const allNews=await (await editor.request(newsPath+'?view=all')).text();assert.ok(allNews.includes(`value="${newsPackage}"`));
+  // KB: real private page and Server Action; synthetic fixtures only, no scientific approvals.
+  assert.match(allNews,/Knowledge Base/);
+  const knowledgePath='/editorial/knowledge?mode=context&package='+newsPackage+'&entry='+encodeURIComponent('news-source:'+newsPackage+':1');
+  assert.equal((await anon.request(knowledgePath)).headers.get('location'),'/login');
+  assert.match((await outsider.request(knowledgePath)).headers.get('location')||'',/notice=access/);
+  const knowledgeResponse=await editor.request(knowledgePath);assert.equal(knowledgeResponse.status,200);
+  const knowledgeHtml=await knowledgeResponse.text();assert.match(knowledgeHtml,/Автоматическое обоснование/);assert.match(knowledgeHtml,/необязательно/);assert.match(knowledgeHtml,/noindex/);
+  const knowledgeForm=formFrom(knowledgeHtml,'entry');knowledgeForm.set('decision','accept');knowledgeForm.set('comment','HTTP synthetic context, not scientific verification.');
+  assert.ok((await editor.post(knowledgeForm,'https://attacker.example',knowledgePath)).status>=400,'KB rejects cross-origin write');
+  assert.ok((await reviewer.post(knowledgeForm,origin,knowledgePath)).status>=400,'KB reviewer cannot save');
+  assert.ok(!(await (await reviewer.request(knowledgePath)).text()).includes('name="request"'),'Reviewer UI has no write form');
+  const forgedKnowledge=formFrom(knowledgeHtml,'entry');forgedKnowledge.set('decision','accept');forgedKnowledge.set('hash','a'.repeat(64));
+  assert.match((await editor.post(forgedKnowledge,origin,knowledgePath)).headers.get('location')||'',/notice=conflict/,'Server re-reads exact entry hash');
+  for(let i=0;i<2;i++)assert.match((await editor.post(knowledgeForm,origin,knowledgePath)).headers.get('location')||'',/notice=saved/,'KB save and exact replay');
+  const knowledgeSaved=(await db.query('select * from academy.knowledge_context_decisions where package_id=$1',[newsPackage])).rows;
+  assert.equal(knowledgeSaved.length,1);assert.equal(knowledgeSaved[0].actor_id,userIds[0]);assert.equal(knowledgeSaved[0].decision,'accept');
+  assert.match(await (await editor.request(knowledgePath)).text(),/Связь с этой версией сохранена/,'KB persists after reload');
+  assert.deepEqual((await db.query('select * from academy.news_state where story_id=$1',[newsStory])).rows[0],savedNews,'KB preserves release approval and flags');
   const mediaForm=formFrom(allNews,'youtubeUrl',newsStory);mediaForm.set('youtubeUrl','https://youtu.be/testVideo01?si=ignored');mediaForm.set('youtubeLanguage','en');mediaForm.set('mediaAction','save');
   assert.ok((await reviewer.post(mediaForm,origin,newsPath)).status>=400,'Reviewer cannot edit related media');
   assert.ok((await editor.post(mediaForm,'https://attacker.example',newsPath)).status>=400,'Media edit rejects cross-origin requests');
@@ -378,6 +396,7 @@ try {
   const logout = formFrom(afterReload, 'logout');
   assert.equal((await editor.post(logout)).headers.get('location'), '/login');
   assert.equal((await editor.request('/editorial')).headers.get('location'), '/login');
+  assert.equal((await editor.request('/editorial/knowledge')).headers.get('location'), '/login','KB denied after logout');
   assert.equal((await editor.request('/api/readiness')).status,401,'Logout removes private readiness access');
   console.log('PASS: Auth/PKCE, inbox/catalog/budget, Markdown paste/upload preview without writes, selected confirm/reimport, source provenance, metadata preview/pending confirmation/replay, scope/manual flags, PDF/Storage/dossier/scientific review and brief gate, CSRF and roles');
 } finally {
@@ -386,6 +405,7 @@ try {
     // Local fixture cleanup only: privileged transaction bypasses immutability triggers, never production.
     await db.query('begin');await db.query('set local session_replication_role=replica');
     if(newsBatch){
+      await db.query('delete from academy.knowledge_context_decisions where package_id in (select id from academy.news_packages where batch_id=$1)',[newsBatch]);
       await db.query('delete from academy.news_metadata_events where story_id=$1',[newsStory]);
       for(const table of ['news_delivery_events','news_outbox','news_releases','news_decisions']){
         const condition=table==='news_delivery_events'?'outbox_id in (select id from academy.news_outbox where package_id in (select id from academy.news_packages where batch_id=$1))':'package_id in (select id from academy.news_packages where batch_id=$1)';

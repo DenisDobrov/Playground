@@ -1,0 +1,17 @@
+begin;
+create extension if not exists pgtap with schema extensions;
+select plan(12);
+select ok((select reloptions @> array['security_invoker=true'] from pg_class where oid='academy.knowledge_records'::regclass),'KB view obeys underlying RLS');
+select ok((select relrowsecurity from pg_class where oid='academy.knowledge_context_decisions'::regclass),'Context history has RLS');
+select ok(not has_table_privilege('anon','academy.knowledge_records','select'),'Anonymous cannot read knowledge');
+select ok(not has_table_privilege('anon','academy.knowledge_context_decisions','select'),'Anonymous cannot read context history');
+select ok(has_table_privilege('authenticated','academy.knowledge_records','select'),'Members query the RLS view');
+select ok(not has_table_privilege('authenticated','academy.knowledge_context_decisions','insert'),'No direct context inserts');
+select ok(not has_table_privilege('authenticated','academy.knowledge_context_decisions','update'),'No direct context updates');
+select ok(not has_table_privilege('authenticated','academy.knowledge_context_decisions','delete'),'No context history deletion');
+select ok(not has_function_privilege('anon','academy.knowledge_search(text,text,integer,boolean)','execute'),'Anonymous cannot search');
+select ok(not has_function_privilege('service_role','academy.knowledge_decide_context(uuid,text,text,uuid,uuid,text,text)','execute'),'Worker cannot submit owner decisions');
+select ok(has_function_privilege('authenticated','academy.knowledge_decide_context(uuid,text,text,uuid,uuid,text,text)','execute'),'Scoped authenticated command exists');
+select ok(exists(select 1 from pg_trigger where tgrelid='academy.knowledge_context_decisions'::regclass and tgname='immutable' and not tgisinternal),'History has an immutability guard');
+select * from finish();
+rollback;
