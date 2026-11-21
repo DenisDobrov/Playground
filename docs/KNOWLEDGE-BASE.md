@@ -53,3 +53,5 @@ Display bounds: 8 suggestions, 20 targets per search, 20 history entries/materia
 ## Visual inspection
 
 Rendered local synthetic page: [desktop](assets/knowledge-base-desktop.png), [mobile, 390 px](assets/knowledge-base-mobile.png). No horizontal overflow at 390 px. These are UI test records, not production knowledge or scientific validation.
+
+GitHub Actions subsequently passed the complete database suite on the normal network, including standard pgTAP, KB HTTP and the comprehensive editorial Auth/readiness/CSRF workflow. The local transport limitation did not reproduce in CI.

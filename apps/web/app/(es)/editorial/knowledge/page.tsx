@@ -18,7 +18,7 @@ export default async function Page({searchParams}:{searchParams:Promise<Record<s
  let data:Awaited<ReturnType<typeof loadKnowledge>>;
  try{data=await loadKnowledge(client,params);}catch(error){if(!(error instanceof KnowledgeUnavailable))throw error;return <main id="main-content" className="kb-page"><h1>Knowledge Base</h1><p role="status">{error.missingMigration?'Раздел ещё не подключён к этой базе. Требуется отдельно согласованное обновление базы знаний.':'База знаний временно недоступна. Сохранённые записи не изменены.'}</p><Link href="/editorial/news">Вернуться в редакцию</Link></main>;}
  const {search,entry,target,targets,suggestions,decisions,reason}=data;
- const browse=(changes:Parameters<typeof knowledgeUrl>[0])=>knowledgeUrl({...params,...changes});
+ const browse=(changes:Parameters<typeof knowledgeUrl>[0])=>knowledgeUrl({...params,...changes})+(changes?.entry?'#knowledge-detail':'');
  const writable=role==='editor'&&target&&entry?.is_current&&entry.entry_key!=='news:'+target.id;
  return <main id="main-content" className="kb-page">
   <nav className="kb-topnav" aria-label="Разделы редакции"><Link href="/editorial/news">← Редакция</Link><Link href="/editorial/news?view=video">Video Ideas</Link><span>Приватно · {role==='editor'?'Редактор':'Только чтение'}</span></nav>
