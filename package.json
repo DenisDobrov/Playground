@@ -11,6 +11,8 @@
     "node": ">=22.14.0"
   },
   "scripts": {
+    "test:knowledge:web": "tsx tests/integration/knowledge-web.ts",
+    "test:knowledge:integration": "tsx tests/integration/knowledge.ts",
     "test:news:media": "tsx tests/integration/news-media.ts",
     "test:news:languages": "tsx tests/integration/news-languages.ts",
     "test:news:languages:web": "tsx tests/integration/news-languages-web.ts",
